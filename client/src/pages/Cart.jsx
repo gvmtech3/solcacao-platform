@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Minus, Plus, Trash2 } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
+import ProductImage from '../components/common/ProductImage'
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, subtotal } = useCart()
@@ -28,7 +29,7 @@ export default function Cart() {
               const name = locale === 'es' ? product.nameEs : product.nameEn
               return (
                 <li key={product.id} className="flex items-center gap-4 p-5">
-                  <div className={`h-20 w-20 shrink-0 rounded-xl bg-gradient-to-br ${product.swatch}`} />
+                  <ProductImage product={product} className="h-20 w-20 shrink-0 rounded-xl" iconClassName="h-1/2 w-1/2" />
                   <div className="flex flex-1 flex-col gap-1">
                     <Link to={`/product/${product.id}`} className="font-medium hover:text-cacao-600">
                       {name}

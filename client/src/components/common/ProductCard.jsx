@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useLocale } from '../../context/LocaleContext'
 import { useCart } from '../../context/CartContext'
+import ProductImage from './ProductImage'
 
 export default function ProductCard({ product }) {
   const { locale, t } = useLocale()
@@ -11,13 +12,7 @@ export default function ProductCard({ product }) {
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl border border-cacao-100 bg-white shadow-sm transition hover:shadow-md">
       <Link to={`/product/${product.id}`} className="block">
-        <div
-          className={`flex h-48 items-center justify-center bg-gradient-to-br ${product.swatch} text-cream-50`}
-        >
-          <span className="font-serif text-4xl font-semibold opacity-90">
-            {name.charAt(0)}
-          </span>
-        </div>
+        <ProductImage product={product} className="h-48" />
       </Link>
       <div className="flex flex-1 flex-col gap-2 p-4">
         <span className="text-xs font-medium uppercase tracking-wide text-gold-600">

@@ -5,6 +5,7 @@ import { products } from '../data/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import ProductCard from '../components/common/ProductCard'
+import ProductImage from '../components/common/ProductImage'
 import NotFound from './NotFound'
 
 export default function ProductDetail() {
@@ -30,11 +31,8 @@ export default function ProductDetail() {
       </nav>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-        <div
-          className={`flex aspect-square items-center justify-center rounded-3xl bg-gradient-to-br ${product.swatch} text-cream-50`}
-        >
-          <span className="font-serif text-7xl font-semibold opacity-90">{name.charAt(0)}</span>
-        </div>
+        <ProductImage product={product} className="aspect-square rounded-3xl" />
+
 
         <div className="flex flex-col gap-5">
           <span className="text-xs font-semibold uppercase tracking-wide text-gold-600">

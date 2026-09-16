@@ -11,6 +11,7 @@ export const products = [
     cacaoPercentage: 72,
     price: 12.5,
     swatch: 'from-cacao-500 to-cacao-700',
+    imageUrl: 'https://images.pexels.com/photos/4113364/pexels-photo-4113364.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 2,
@@ -24,6 +25,7 @@ export const products = [
     cacaoPercentage: 85,
     price: 13.75,
     swatch: 'from-cacao-700 to-cacao-900',
+    imageUrl: 'https://images.pexels.com/photos/6167345/pexels-photo-6167345.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 3,
@@ -37,6 +39,7 @@ export const products = [
     cacaoPercentage: 64,
     price: 11.0,
     swatch: 'from-gold-400 to-cacao-500',
+    imageUrl: 'https://images.pexels.com/photos/14456475/pexels-photo-14456475.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 4,
@@ -50,6 +53,7 @@ export const products = [
     cacaoPercentage: 70,
     price: 24.0,
     swatch: 'from-cacao-600 to-gold-500',
+    imageUrl: 'https://images.pexels.com/photos/352779/pexels-photo-352779.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 5,
@@ -63,6 +67,7 @@ export const products = [
     cacaoPercentage: 70,
     price: 24.0,
     swatch: 'from-cacao-800 to-cacao-600',
+    imageUrl: 'https://images.pexels.com/photos/3465380/pexels-photo-3465380.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 6,
@@ -76,6 +81,7 @@ export const products = [
     cacaoPercentage: 65,
     price: 26.0,
     swatch: 'from-gold-300 to-cacao-500',
+    imageUrl: 'https://images.pexels.com/photos/10313341/pexels-photo-10313341.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 7,
@@ -89,6 +95,7 @@ export const products = [
     cacaoPercentage: 68,
     price: 14.5,
     swatch: 'from-cacao-500 to-gold-500',
+    imageUrl: 'https://images.pexels.com/photos/11616424/pexels-photo-11616424.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 8,
@@ -102,6 +109,7 @@ export const products = [
     cacaoPercentage: 60,
     price: 13.0,
     swatch: 'from-cacao-400 to-cacao-600',
+    imageUrl: 'https://images.pexels.com/photos/1693027/pexels-photo-1693027.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 9,
@@ -115,6 +123,7 @@ export const products = [
     cacaoPercentage: 55,
     price: 10.5,
     swatch: 'from-gold-400 to-gold-600',
+    imageUrl: 'https://images.pexels.com/photos/6167333/pexels-photo-6167333.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 ]
 

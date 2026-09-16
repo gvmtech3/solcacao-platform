@@ -4,6 +4,7 @@ import { useLocale } from '../context/LocaleContext'
 import { products } from '../data/products'
 import { categories } from '../data/categories'
 import ProductCard from '../components/common/ProductCard'
+import ProductImage from '../components/common/ProductImage'
 import SectionHeading from '../components/common/SectionHeading'
 
 export default function Home() {
@@ -38,10 +39,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {products.slice(0, 4).map((p) => (
-              <div
-                key={p.id}
-                className={`aspect-square rounded-2xl bg-gradient-to-br ${p.swatch} shadow-lg`}
-              />
+              <ProductImage key={p.id} product={p} className="aspect-square rounded-2xl shadow-lg" />
             ))}
           </div>
         </div>
@@ -57,6 +55,14 @@ export default function Home() {
               to={`/shop?category=${cat.slug}`}
               className="group relative flex h-48 items-end overflow-hidden rounded-2xl bg-cacao-200 p-5"
             >
+              {cat.imageUrl && (
+                <img
+                  src={cat.imageUrl}
+                  alt=""
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-cacao-900/80 via-cacao-900/20 to-transparent" />
               <span className="relative font-serif text-xl font-semibold text-white">
                 {locale === 'es' ? cat.nameEs : cat.nameEn}

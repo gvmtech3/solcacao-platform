@@ -3,6 +3,7 @@ import { Check, Gift } from 'lucide-react'
 import { products } from '../data/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
+import ProductImage from '../components/common/ProductImage'
 
 const MAX_PIECES = 9
 
@@ -51,13 +52,12 @@ export default function SamplerBuilder() {
                   isSelected ? 'border-cacao-700' : 'border-transparent'
                 }`}
               >
-                <div className={`flex h-28 items-center justify-center bg-gradient-to-br ${product.swatch}`}>
-                  {isSelected && (
-                    <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-cacao-700 text-white">
-                      <Check size={14} />
-                    </span>
-                  )}
-                </div>
+                <ProductImage product={product} className="h-28" iconClassName="h-1/2 w-1/2" />
+                {isSelected && (
+                  <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-cacao-700 text-white">
+                    <Check size={14} />
+                  </span>
+                )}
                 <div className="flex flex-col gap-0.5 bg-white p-3">
                   <span className="text-xs font-medium leading-snug text-cacao-800">{name}</span>
                   <span className="text-xs text-cacao-400">${product.price.toFixed(2)}</span>

@@ -4,6 +4,22 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 
+function Field({ id, label, ...inputProps }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="sr-only">
+        {label}
+      </label>
+      <input
+        id={id}
+        placeholder={label}
+        className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
+        {...inputProps}
+      />
+    </div>
+  )
+}
+
 export default function Checkout() {
   const { items, subtotal, clearCart } = useCart()
   const { isAuthenticated, openLogin } = useAuth()
@@ -39,18 +55,8 @@ export default function Checkout() {
             <legend className="px-1 font-serif text-lg font-semibold text-cacao-900">
               {t('checkout_contact')}
             </legend>
-            <input
-              required
-              type="email"
-              placeholder="Email"
-              className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
-            />
-            <input
-              required
-              type="tel"
-              placeholder="Phone"
-              className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
-            />
+            <Field id="checkout-email" label="Email" required type="email" />
+            <Field id="checkout-phone" label="Phone" required type="tel" />
           </fieldset>
 
           <fieldset className="flex flex-col gap-4 rounded-2xl border border-cacao-100 bg-white p-6">
@@ -58,38 +64,14 @@ export default function Checkout() {
               {t('checkout_shipping')}
             </legend>
             <div className="grid grid-cols-2 gap-4">
-              <input
-                required
-                placeholder="First Name"
-                className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
-              />
-              <input
-                required
-                placeholder="Last Name"
-                className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
-              />
+              <Field id="checkout-first-name" label="First Name" required />
+              <Field id="checkout-last-name" label="Last Name" required />
             </div>
-            <input
-              required
-              placeholder="Address"
-              className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
-            />
+            <Field id="checkout-address" label="Address" required />
             <div className="grid grid-cols-3 gap-4">
-              <input
-                required
-                placeholder="City"
-                className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
-              />
-              <input
-                required
-                placeholder="State"
-                className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
-              />
-              <input
-                required
-                placeholder="ZIP"
-                className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
-              />
+              <Field id="checkout-city" label="City" required />
+              <Field id="checkout-state" label="State" required />
+              <Field id="checkout-zip" label="ZIP" required />
             </div>
           </fieldset>
 
@@ -97,22 +79,10 @@ export default function Checkout() {
             <legend className="px-1 font-serif text-lg font-semibold text-cacao-900">
               {t('checkout_payment')}
             </legend>
-            <input
-              required
-              placeholder="Card Number"
-              className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
-            />
+            <Field id="checkout-card-number" label="Card Number" required />
             <div className="grid grid-cols-2 gap-4">
-              <input
-                required
-                placeholder="MM / YY"
-                className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
-              />
-              <input
-                required
-                placeholder="CVC"
-                className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
-              />
+              <Field id="checkout-card-expiry" label="MM / YY" required />
+              <Field id="checkout-card-cvc" label="CVC" required />
             </div>
           </fieldset>
         </div>

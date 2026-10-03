@@ -1,10 +1,14 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { translations } from '../data/translations'
 
 const LocaleContext = createContext(null)
 
 export function LocaleProvider({ children }) {
   const [locale, setLocale] = useState('en')
+
+  useEffect(() => {
+    document.documentElement.lang = locale
+  }, [locale])
 
   const value = useMemo(() => {
     const dict = translations[locale]

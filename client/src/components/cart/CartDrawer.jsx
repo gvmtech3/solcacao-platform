@@ -3,19 +3,22 @@ import { X, Minus, Plus, Trash2 } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
 import { useLocale } from '../../context/LocaleContext'
 import ProductImage from '../common/ProductImage'
+import useEscapeKey from '../../hooks/useEscapeKey'
 
 export default function CartDrawer() {
   const { items, isDrawerOpen, closeDrawer, updateQuantity, removeItem, subtotal } = useCart()
   const { locale, t } = useLocale()
 
+  useEscapeKey(isDrawerOpen, closeDrawer)
+
   if (!isDrawerOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby="cart-drawer-title">
       <div className="absolute inset-0 bg-cacao-900/40" onClick={closeDrawer} />
       <div className="absolute inset-y-0 right-0 flex w-full max-w-sm flex-col bg-cream-50 shadow-xl">
         <div className="flex items-center justify-between border-b border-cacao-100 px-5 py-4">
-          <h2 className="font-serif text-lg font-semibold">{t('cart_title')}</h2>
+          <h2 id="cart-drawer-title" className="font-serif text-lg font-semibold">{t('cart_title')}</h2>
           <button type="button" onClick={closeDrawer} aria-label="Close cart" className="p-1 text-cacao-700">
             <X size={20} />
           </button>

@@ -47,6 +47,7 @@ export default function SamplerBuilder() {
               <button
                 type="button"
                 key={product.id}
+                aria-pressed={isSelected}
                 onClick={() => toggle(product)}
                 className={`relative flex flex-col overflow-hidden rounded-2xl border-2 text-left transition ${
                   isSelected ? 'border-cacao-700' : 'border-transparent'
@@ -60,7 +61,7 @@ export default function SamplerBuilder() {
                 )}
                 <div className="flex flex-col gap-0.5 bg-white p-3">
                   <span className="text-xs font-medium leading-snug text-cacao-800">{name}</span>
-                  <span className="text-xs text-cacao-400">${product.price.toFixed(2)}</span>
+                  <span className="text-xs text-cacao-600">${product.price.toFixed(2)}</span>
                 </div>
               </button>
             )
@@ -69,13 +70,13 @@ export default function SamplerBuilder() {
 
         <div className="h-fit rounded-2xl border border-cacao-100 bg-white p-6">
           <h2 className="font-serif text-lg font-semibold text-cacao-900">{t('sampler_review')}</h2>
-          <p className="mt-1 text-xs text-cacao-400">
+          <p className="mt-1 text-xs text-cacao-600">
             {selected.length} / {MAX_PIECES} pieces selected
           </p>
 
           <ul className="mt-4 flex flex-col gap-2">
             {selected.length === 0 ? (
-              <li className="text-sm text-cacao-400">Choose pieces to start your sampler.</li>
+              <li className="text-sm text-cacao-600">Choose pieces to start your sampler.</li>
             ) : (
               selected.map((p) => (
                 <li key={p.id} className="flex justify-between text-sm">

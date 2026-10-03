@@ -4,6 +4,7 @@ import { Menu, X, Search, ShoppingBag, User, Globe } from 'lucide-react'
 import { useLocale } from '../../context/LocaleContext'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
+import useEscapeKey from '../../hooks/useEscapeKey'
 
 const navLinkClass = ({ isActive }) =>
   `text-sm font-medium transition hover:text-cacao-600 ${
@@ -16,6 +17,9 @@ export default function Navbar() {
   const { locale, toggleLocale, t } = useLocale()
   const { itemCount, openDrawer } = useCart()
   const { isAuthenticated, user, openLogin, logout } = useAuth()
+
+  useEscapeKey(mobileOpen, () => setMobileOpen(false))
+  useEscapeKey(searchOpen, () => setSearchOpen(false))
 
   const navLinks = [
     { to: '/shop', label: t('nav_shop') },
@@ -96,7 +100,7 @@ export default function Navbar() {
           >
             <ShoppingBag size={19} />
             {itemCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-gold-500 px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-cacao-700 px-1 text-[10px] font-bold text-white">
                 {itemCount}
               </span>
             )}
@@ -106,7 +110,11 @@ export default function Navbar() {
 
       {searchOpen && (
         <div className="border-t border-cacao-100 bg-white px-4 py-3 sm:px-6 lg:px-8">
+          <label htmlFor="site-search" className="sr-only">
+            {t('nav_search_placeholder')}
+          </label>
           <input
+            id="site-search"
             type="search"
             autoFocus
             placeholder={t('nav_search_placeholder')}
@@ -116,14 +124,19 @@ export default function Navbar() {
       )}
 
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div
+          className="fixed inset-0 z-50 md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="mobile-menu-title"
+        >
           <div
             className="absolute inset-0 bg-cacao-900/40"
             onClick={() => setMobileOpen(false)}
           />
           <div className="absolute inset-y-0 left-0 flex w-72 flex-col gap-6 bg-cream-50 p-6 shadow-xl">
             <div className="flex items-center justify-between">
-              <span className="font-serif text-lg font-bold text-cacao-900">SolCacao</span>
+              <span id="mobile-menu-title" className="font-serif text-lg font-bold text-cacao-900">SolCacao</span>
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}

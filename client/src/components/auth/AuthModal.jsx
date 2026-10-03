@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useLocale } from '../../context/LocaleContext'
+import useEscapeKey from '../../hooks/useEscapeKey'
 
 export default function AuthModal() {
   const { isModalOpen, modalView, setModalView, closeModal, login, register } = useAuth()
@@ -11,6 +12,8 @@ export default function AuthModal() {
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [accountType, setAccountType] = useState('retail')
+
+  useEscapeKey(isModalOpen, closeModal)
 
   if (!isModalOpen) return null
 
@@ -26,7 +29,12 @@ export default function AuthModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auth-modal-title"
+    >
       <div className="absolute inset-0 bg-cacao-900/50" onClick={closeModal} />
       <div className="relative w-full max-w-sm rounded-2xl bg-cream-50 p-6 shadow-xl">
         <button
@@ -38,15 +46,18 @@ export default function AuthModal() {
           <X size={20} />
         </button>
 
-        <h2 className="mb-5 font-serif text-2xl font-semibold text-cacao-900">
+        <h2 id="auth-modal-title" className="mb-5 font-serif text-2xl font-semibold text-cacao-900">
           {isLogin ? t('login_title') : t('register_title')}
         </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {!isLogin && (
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-cacao-600">First Name</label>
+              <label htmlFor="auth-first-name" className="text-xs font-medium text-cacao-600">
+                First Name
+              </label>
               <input
+                id="auth-first-name"
                 type="text"
                 required
                 value={firstName}
@@ -57,8 +68,11 @@ export default function AuthModal() {
           )}
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-cacao-600">{t('login_email')}</label>
+            <label htmlFor="auth-email" className="text-xs font-medium text-cacao-600">
+              {t('login_email')}
+            </label>
             <input
+              id="auth-email"
               type="email"
               required
               value={email}
@@ -68,8 +82,11 @@ export default function AuthModal() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-cacao-600">{t('login_password')}</label>
+            <label htmlFor="auth-password" className="text-xs font-medium text-cacao-600">
+              {t('login_password')}
+            </label>
             <input
+              id="auth-password"
               type="password"
               required
               value={password}
@@ -80,7 +97,7 @@ export default function AuthModal() {
 
           {!isLogin && (
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-medium text-cacao-600">Account Type</label>
+              <span className="text-xs font-medium text-cacao-600">Account Type</span>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { value: 'retail', label: t('account_type_retail') },
@@ -89,6 +106,7 @@ export default function AuthModal() {
                   <button
                     key={opt.value}
                     type="button"
+                    aria-pressed={accountType === opt.value}
                     onClick={() => setAccountType(opt.value)}
                     className={`rounded-lg border px-3 py-2 text-xs font-medium transition ${
                       accountType === opt.value

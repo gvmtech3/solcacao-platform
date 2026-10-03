@@ -25,7 +25,7 @@ export default function Home() {
             <div className="flex flex-wrap gap-3">
               <Link
                 to="/shop"
-                className="flex items-center gap-2 rounded-full bg-gold-500 px-6 py-3 text-sm font-semibold text-cacao-900 hover:bg-gold-400"
+                className="flex items-center gap-2 rounded-full bg-gold-600 px-6 py-3 text-sm font-semibold text-white hover:bg-gold-500"
               >
                 {t('hero_cta')} <ArrowRight size={16} />
               </Link>

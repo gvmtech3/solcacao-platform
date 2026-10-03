@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocale } from '../../context/LocaleContext'
 
 function BarIcon({ className }) {
   return (
@@ -54,18 +55,20 @@ const ICONS = {
 
 export default function ProductImage({ product, className = '', iconClassName = 'h-2/3 w-2/3' }) {
   const Icon = ICONS[product.productType] || BarIcon
+  const { locale } = useLocale()
   const [imageFailed, setImageFailed] = useState(false)
+  const name = locale === 'es' ? product.nameEs : product.nameEn
+  const hasPhoto = Boolean(product.imageUrl) && !imageFailed
 
   return (
     <div
-      role="img"
-      aria-label={product.nameEn}
+      {...(!hasPhoto ? { role: 'img', 'aria-label': name } : {})}
       className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br ${product.swatch} ${className}`}
     >
-      {product.imageUrl && !imageFailed ? (
+      {hasPhoto ? (
         <img
           src={product.imageUrl}
-          alt={product.nameEn}
+          alt={name}
           loading="lazy"
           onError={() => setImageFailed(true)}
           className="h-full w-full object-cover"

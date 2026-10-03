@@ -41,21 +41,25 @@ export default function B2BWizard() {
       {/* Stepper */}
       <ol className="mb-10 flex items-center gap-2">
         {STEP_KEYS.map((key, i) => (
-          <li key={key} className="flex flex-1 items-center gap-2">
+          <li
+            key={key}
+            className="flex flex-1 items-center gap-2"
+            aria-current={i === step ? 'step' : undefined}
+          >
             <div
               className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                 i < step
                   ? 'bg-cacao-700 text-white'
                   : i === step
                   ? 'border-2 border-cacao-700 text-cacao-700'
-                  : 'border border-cacao-200 text-cacao-300'
+                  : 'border border-cacao-200 text-cacao-500'
               }`}
             >
               {i < step ? <Check size={14} /> : i + 1}
             </div>
             <span
               className={`hidden text-xs font-medium sm:block ${
-                i <= step ? 'text-cacao-800' : 'text-cacao-300'
+                i <= step ? 'text-cacao-800' : 'text-cacao-500'
               }`}
             >
               {t(key)}
@@ -74,6 +78,7 @@ export default function B2BWizard() {
                 <button
                   type="button"
                   key={profile}
+                  aria-pressed={form.cacaoProfile === profile}
                   onClick={() => update('cacaoProfile', profile)}
                   className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition ${
                     form.cacaoProfile === profile
@@ -86,8 +91,9 @@ export default function B2BWizard() {
               ))}
             </div>
             <div>
-              <label className="text-xs font-medium text-cacao-500">Estimated Quantity (units)</label>
+              <label htmlFor="wizard-quantity" className="text-xs font-medium text-cacao-500">Estimated Quantity (units)</label>
               <input
+                id="wizard-quantity"
                 type="number"
                 min={50}
                 value={form.quantity}
@@ -106,7 +112,7 @@ export default function B2BWizard() {
               <span className="text-sm font-medium text-cacao-700">
                 {form.fileName || 'Upload brand vector or tech pack (.ai, .svg, .pdf)'}
               </span>
-              <span className="text-xs text-cacao-400">Click to browse</span>
+              <span className="text-xs text-cacao-600">Click to browse</span>
               <input
                 type="file"
                 className="hidden"
@@ -114,8 +120,9 @@ export default function B2BWizard() {
               />
             </label>
             <div>
-              <label className="text-xs font-medium text-cacao-500">Company Name</label>
+              <label htmlFor="wizard-company-name" className="text-xs font-medium text-cacao-500">Company Name</label>
               <input
+                id="wizard-company-name"
                 required
                 value={form.companyName}
                 onChange={(e) => update('companyName', e.target.value)}
@@ -133,6 +140,7 @@ export default function B2BWizard() {
                 <button
                   type="button"
                   key={option}
+                  aria-pressed={form.packaging === option}
                   onClick={() => update('packaging', option)}
                   className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition ${
                     form.packaging === option
@@ -145,8 +153,9 @@ export default function B2BWizard() {
               ))}
             </div>
             <div>
-              <label className="text-xs font-medium text-cacao-500">Additional Notes</label>
+              <label htmlFor="wizard-notes" className="text-xs font-medium text-cacao-500">Additional Notes</label>
               <textarea
+                id="wizard-notes"
                 rows={3}
                 value={form.notes}
                 onChange={(e) => update('notes', e.target.value)}
@@ -161,29 +170,30 @@ export default function B2BWizard() {
             <h2 className="font-serif text-xl font-semibold text-cacao-900">{t('wizard_step4')}</h2>
             <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-cacao-400">Cacao Profile</dt>
+                <dt className="text-cacao-600">Cacao Profile</dt>
                 <dd className="font-medium text-cacao-800">{form.cacaoProfile}</dd>
               </div>
               <div>
-                <dt className="text-cacao-400">Quantity</dt>
+                <dt className="text-cacao-600">Quantity</dt>
                 <dd className="font-medium text-cacao-800">{form.quantity} units</dd>
               </div>
               <div>
-                <dt className="text-cacao-400">Brand Asset</dt>
+                <dt className="text-cacao-600">Brand Asset</dt>
                 <dd className="font-medium text-cacao-800">{form.fileName || 'Not uploaded'}</dd>
               </div>
               <div>
-                <dt className="text-cacao-400">Packaging</dt>
+                <dt className="text-cacao-600">Packaging</dt>
                 <dd className="font-medium text-cacao-800">{form.packaging}</dd>
               </div>
               <div>
-                <dt className="text-cacao-400">Company</dt>
+                <dt className="text-cacao-600">Company</dt>
                 <dd className="font-medium text-cacao-800">{form.companyName || '—'}</dd>
               </div>
             </dl>
             <div>
-              <label className="text-xs font-medium text-cacao-500">Contact Email</label>
+              <label htmlFor="wizard-email" className="text-xs font-medium text-cacao-500">Contact Email</label>
               <input
+                id="wizard-email"
                 required
                 type="email"
                 value={form.email}
@@ -214,7 +224,7 @@ export default function B2BWizard() {
           ) : (
             <button
               type="submit"
-              className="rounded-full bg-gold-500 px-6 py-2.5 text-sm font-semibold text-cacao-900 hover:bg-gold-400"
+              className="rounded-full bg-gold-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-gold-500"
             >
               {t('wizard_submit')}
             </button>

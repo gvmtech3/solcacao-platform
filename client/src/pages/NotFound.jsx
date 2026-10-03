@@ -6,7 +6,7 @@ export default function NotFound() {
 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center gap-4 px-4 py-32 text-center sm:px-6 lg:px-8">
-      <span className="font-serif text-7xl font-bold text-cacao-200">404</span>
+      <span className="font-serif text-7xl font-bold text-cacao-400">404</span>
       <h1 className="font-serif text-2xl font-bold text-cacao-900">{t('not_found_title')}</h1>
       <p className="text-cacao-500">{t('not_found_body')}</p>
       <Link

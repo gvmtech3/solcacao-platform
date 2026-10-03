@@ -33,18 +33,18 @@ export default function Contact() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl border border-cacao-100 bg-white p-6 sm:p-8">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="text-xs font-medium text-cacao-500">{t('contact_name')}</label>
-              <input required className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm" />
+              <label htmlFor="contact-name" className="text-xs font-medium text-cacao-500">{t('contact_name')}</label>
+              <input id="contact-name" required className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm" />
             </div>
             <div>
-              <label className="text-xs font-medium text-cacao-500">{t('contact_email')}</label>
-              <input required type="email" className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm" />
+              <label htmlFor="contact-email" className="text-xs font-medium text-cacao-500">{t('contact_email')}</label>
+              <input id="contact-email" required type="email" className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm" />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-medium text-cacao-500">{t('contact_category')}</label>
-            <select className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm" defaultValue="general">
+            <label htmlFor="contact-category" className="text-xs font-medium text-cacao-500">{t('contact_category')}</label>
+            <select id="contact-category" className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm" defaultValue="general">
               {CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>
                   {locale === 'es' ? c.labelEs : c.labelEn}
@@ -54,8 +54,8 @@ export default function Contact() {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-cacao-500">{t('contact_message')}</label>
-            <textarea required rows={5} className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm" />
+            <label htmlFor="contact-message" className="text-xs font-medium text-cacao-500">{t('contact_message')}</label>
+            <textarea id="contact-message" required rows={5} className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm" />
           </div>
 
           <button

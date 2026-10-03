@@ -34,6 +34,7 @@ export default function About() {
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+        <h2 className="sr-only">Our Values</h2>
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
           {VALUES.map(({ icon: Icon, title, body }) => (
             <div key={title} className="flex flex-col items-start gap-3 rounded-2xl border border-cacao-100 bg-white p-6">

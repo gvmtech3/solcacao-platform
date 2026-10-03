@@ -47,7 +47,7 @@ export default function B2BLanding() {
           <p className="mx-auto mt-5 max-w-xl text-cacao-100">{t('b2b_hero_subtitle')}</p>
           <Link
             to="/b2b/custom-order"
-            className="mt-8 inline-block rounded-full bg-gold-500 px-8 py-3 text-sm font-semibold text-cacao-900 hover:bg-gold-400"
+            className="mt-8 inline-block rounded-full bg-gold-600 px-8 py-3 text-sm font-semibold text-white hover:bg-gold-500"
           >
             {t('b2b_cta')}
           </Link>
@@ -55,6 +55,7 @@ export default function B2BLanding() {
       </section>
 
       <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h2 className="sr-only">Our B2B Services</h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {SERVICES.map(({ icon: Icon, titleEn, titleEs, bodyEn, bodyEs }) => (
             <div key={titleEn} className="flex flex-col gap-3 rounded-2xl border border-cacao-100 bg-white p-6">

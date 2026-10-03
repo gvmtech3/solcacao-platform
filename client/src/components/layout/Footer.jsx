@@ -13,7 +13,7 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold uppercase tracking-wide text-cacao-400">
+          <span className="text-sm font-semibold uppercase tracking-wide text-cacao-300">
             {t('footer_shop')}
           </span>
           <Link to="/shop" className="text-sm text-cacao-200 hover:text-white">
@@ -28,7 +28,7 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold uppercase tracking-wide text-cacao-400">
+          <span className="text-sm font-semibold uppercase tracking-wide text-cacao-300">
             {t('footer_company')}
           </span>
           <Link to="/about" className="text-sm text-cacao-200 hover:text-white">
@@ -40,7 +40,7 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold uppercase tracking-wide text-cacao-400">
+          <span className="text-sm font-semibold uppercase tracking-wide text-cacao-300">
             {t('footer_support')}
           </span>
           <Link to="/contact" className="text-sm text-cacao-200 hover:text-white">
@@ -48,7 +48,7 @@ export default function Footer() {
           </Link>
         </div>
       </div>
-      <div className="border-t border-cacao-800 px-4 py-4 text-center text-xs text-cacao-400 sm:px-6 lg:px-8">
+      <div className="border-t border-cacao-800 px-4 py-4 text-center text-xs text-cacao-300 sm:px-6 lg:px-8">
         © {new Date().getFullYear()} SolCacao. {t('footer_rights')}
       </div>
     </footer>

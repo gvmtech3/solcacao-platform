@@ -48,22 +48,25 @@ export default function Account() {
               <h2 className="font-serif text-lg font-semibold text-cacao-900">Profile Details</h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="text-xs font-medium text-cacao-500">First Name</label>
+                  <label htmlFor="account-first-name" className="text-xs font-medium text-cacao-500">First Name</label>
                   <input
+                    id="account-first-name"
                     defaultValue={user.firstName}
                     className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-cacao-500">Email</label>
+                  <label htmlFor="account-email" className="text-xs font-medium text-cacao-500">Email</label>
                   <input
+                    id="account-email"
                     defaultValue={user.email}
                     className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-cacao-500">Account Type</label>
+                  <label htmlFor="account-type" className="text-xs font-medium text-cacao-500">Account Type</label>
                   <input
+                    id="account-type"
                     disabled
                     value={user.accountType === 'b2b' ? 'Business / Wholesale' : 'Individual / Retail'}
                     className="mt-1 w-full rounded-lg border border-cacao-200 bg-cacao-50 px-3 py-2 text-sm text-cacao-500"

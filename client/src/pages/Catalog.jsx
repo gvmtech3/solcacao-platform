@@ -18,6 +18,7 @@ export default function Catalog() {
   const { t, locale } = useLocale()
   const [searchParams, setSearchParams] = useSearchParams()
   const activeCategory = searchParams.get('category') || 'all'
+  const searchTerm = (searchParams.get('search') || '').trim().toLocaleLowerCase(locale)
 
   const [selectedOrigins, setSelectedOrigins] = useState([])
   const [cacaoRange, setCacaoRange] = useState(40)
@@ -42,6 +43,21 @@ export default function Catalog() {
 
   const filtered = useMemo(() => {
     let list = products.filter((p) => p.cacaoPercentage >= cacaoRange && p.price <= maxPrice)
+    if (searchTerm) {
+      list = list.filter((product) =>
+        [
+          product.nameEn,
+          product.nameEs,
+          product.descriptionEn,
+          product.descriptionEs,
+          product.origin,
+          product.sku,
+        ]
+          .join(' ')
+          .toLocaleLowerCase(locale)
+          .includes(searchTerm)
+      )
+    }
     if (activeCategory !== 'all') list = list.filter((p) => p.productType === activeCategory)
     if (selectedOrigins.length > 0) list = list.filter((p) => selectedOrigins.includes(p.origin))
 
@@ -55,7 +71,7 @@ export default function Catalog() {
       default:
         return list
     }
-  }, [activeCategory, selectedOrigins, cacaoRange, maxPrice, sort])
+  }, [activeCategory, selectedOrigins, cacaoRange, maxPrice, sort, searchTerm, locale])
 
   const FilterPanel = (
     <div className="flex flex-col gap-8">
@@ -144,9 +160,11 @@ export default function Catalog() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="font-serif text-3xl font-bold text-cacao-900">{t('nav_shop')}</h1>
-        <div className="flex items-center gap-3">
+      <div className="mb-8 flex items-center justify-between gap-2">
+        <h1 className="whitespace-nowrap font-serif text-2xl font-bold text-cacao-900 sm:text-3xl">
+          {t('nav_shop')}
+        </h1>
+        <div className="flex min-w-0 items-center gap-1 sm:gap-3">
           <label htmlFor="catalog-sort" className="sr-only">
             {t('sort_label')}
           </label>
@@ -154,7 +172,7 @@ export default function Catalog() {
             id="catalog-sort"
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="rounded-full border border-cacao-200 px-3 py-1.5 text-sm text-cacao-700 outline-none"
+            className="w-28 max-w-[35vw] min-w-0 rounded-full border border-cacao-200 px-2 py-1.5 text-xs text-cacao-700 outline-none sm:w-auto sm:max-w-none sm:px-3 sm:text-sm"
           >
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -164,9 +182,9 @@ export default function Catalog() {
           </select>
           <button
             onClick={() => setFiltersOpen(true)}
-            className="flex items-center gap-1.5 rounded-full border border-cacao-200 px-3 py-1.5 text-sm text-cacao-700 lg:hidden"
+            className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-cacao-200 px-2 py-1.5 text-xs text-cacao-700 sm:gap-1.5 sm:px-3 sm:text-sm lg:hidden"
           >
-            <SlidersHorizontal size={15} /> Filters
+            <SlidersHorizontal size={14} /> Filters
           </button>
         </div>
       </div>
@@ -182,7 +200,7 @@ export default function Catalog() {
             aria-labelledby="filters-drawer-title"
           >
             <div className="absolute inset-0 bg-cacao-900/40" onClick={() => setFiltersOpen(false)} />
-            <div className="absolute inset-y-0 left-0 w-72 overflow-y-auto bg-cream-50 p-6 shadow-xl">
+            <div className="absolute inset-y-0 left-0 w-72 overflow-y-auto bg-white p-6 shadow-xl">
               <div className="mb-6 flex items-center justify-between">
                 <span id="filters-drawer-title" className="font-serif text-lg font-semibold">Filters</span>
                 <button onClick={() => setFiltersOpen(false)} aria-label="Close filters">

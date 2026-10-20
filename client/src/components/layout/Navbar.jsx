@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { createPortal } from 'react-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Menu, X, Search, ShoppingBag, User, Globe } from 'lucide-react'
 import { useLocale } from '../../context/LocaleContext'
 import { useCart } from '../../context/CartContext'
@@ -14,6 +15,8 @@ const navLinkClass = ({ isActive }) =>
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const navigate = useNavigate()
   const { locale, toggleLocale, t } = useLocale()
   const { itemCount, openDrawer } = useCart()
   const { isAuthenticated, user, openLogin, logout } = useAuth()
@@ -28,6 +31,13 @@ export default function Navbar() {
     { to: '/contact', label: t('nav_contact') },
     { to: '/about', label: t('nav_about') },
   ]
+
+  const submitSearch = (event) => {
+    event.preventDefault()
+    const query = searchTerm.trim()
+    navigate(query ? `/shop?search=${encodeURIComponent(query)}` : '/shop')
+    setSearchOpen(false)
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-cacao-100 bg-cream-50/95 backdrop-blur">
@@ -109,7 +119,10 @@ export default function Navbar() {
       </div>
 
       {searchOpen && (
-        <div className="border-t border-cacao-100 bg-white px-4 py-3 sm:px-6 lg:px-8">
+        <form
+          onSubmit={submitSearch}
+          className="flex gap-2 border-t border-cacao-100 bg-white px-4 py-3 sm:px-6 lg:px-8"
+        >
           <label htmlFor="site-search" className="sr-only">
             {t('nav_search_placeholder')}
           </label>
@@ -117,13 +130,21 @@ export default function Navbar() {
             id="site-search"
             type="search"
             autoFocus
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
             placeholder={t('nav_search_placeholder')}
             className="w-full rounded-full border border-cacao-200 px-4 py-2 text-sm outline-none focus:border-cacao-500"
           />
-        </div>
+          <button
+            type="submit"
+            className="rounded-full bg-cacao-700 px-5 py-2 text-sm font-medium text-white transition hover:bg-cacao-600"
+          >
+            {t('nav_search_submit')}
+          </button>
+        </form>
       )}
 
-      {mobileOpen && (
+      {mobileOpen && createPortal(
         <div
           className="fixed inset-0 z-50 md:hidden"
           role="dialog"
@@ -134,7 +155,7 @@ export default function Navbar() {
             className="absolute inset-0 bg-cacao-900/40"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute inset-y-0 left-0 flex w-72 flex-col gap-6 bg-cream-50 p-6 shadow-xl">
+          <div className="absolute inset-y-0 left-0 flex w-72 flex-col gap-6 bg-white p-6 shadow-xl">
             <div className="flex items-center justify-between">
               <span id="mobile-menu-title" className="font-serif text-lg font-bold text-cacao-900">SolCacao</span>
               <button
@@ -168,17 +189,27 @@ export default function Navbar() {
                 {locale === 'en' ? 'Español' : 'English'}
               </button>
               {isAuthenticated ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    logout()
-                    setMobileOpen(false)
-                  }}
-                  className="flex items-center gap-2 text-sm font-semibold text-cacao-700"
-                >
-                  <User size={16} />
-                  Log Out
-                </button>
+                <>
+                  <Link
+                    to="/account"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 text-sm font-semibold text-cacao-700"
+                  >
+                    <User size={16} />
+                    {t('nav_account')}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      logout()
+                      setMobileOpen(false)
+                    }}
+                    className="flex items-center gap-2 text-sm font-semibold text-cacao-700"
+                  >
+                    <User size={16} />
+                    Log Out
+                  </button>
+                </>
               ) : (
                 <button
                   type="button"
@@ -194,7 +225,8 @@ export default function Navbar() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   )

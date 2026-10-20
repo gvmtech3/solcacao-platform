@@ -2,11 +2,31 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, UploadCloud } from 'lucide-react'
 import { useLocale } from '../context/LocaleContext'
+import { validateName, validateEmail, validatePhone, validateRequired, validateQuantity } from '../utils/validators'
 
 const STEP_KEYS = ['wizard_step1', 'wizard_step2', 'wizard_step3', 'wizard_step4']
 
 const CACAO_PROFILES = ['55% Milk-Dark Blend', '64% Semisweet', '72% Dark', '85% Extra Dark']
 const PACKAGING_OPTIONS = ['Kraft Gift Box', 'Matte Black Rigid Box', 'Clear Window Sleeve', 'Custom Die-Cut']
+
+const VALIDATORS = {
+  quantity: (v) => validateQuantity(v, 50),
+  companyName: (v) => validateRequired(v, 'Company name'),
+  contactName: (v) => validateName(v, 'Contact name'),
+  email: validateEmail,
+  phone: validatePhone,
+}
+
+const STEP_FIELDS = [['quantity'], ['companyName', 'contactName'], [], ['email', 'phone']]
+
+function FieldError({ id, error }) {
+  if (!error) return null
+  return (
+    <p id={id} className="mt-1 text-xs text-red-600">
+      {error}
+    </p>
+  )
+}
 
 export default function B2BWizard() {
   const { t } = useLocale()
@@ -20,18 +40,53 @@ export default function B2BWizard() {
     packaging: PACKAGING_OPTIONS[0],
     notes: '',
     companyName: '',
+    contactName: '',
     email: '',
+    phone: '',
   })
+  const [errors, setErrors] = useState({})
+  const [touched, setTouched] = useState({})
 
   const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }))
 
-  const next = () => setStep((s) => Math.min(s + 1, STEP_KEYS.length - 1))
+  const handleBlur = (field) => () => {
+    setTouched((prev) => ({ ...prev, [field]: true }))
+    setErrors((prev) => ({ ...prev, [field]: VALIDATORS[field](form[field]) }))
+  }
+
+  const validateStep = (stepIndex) => {
+    const fields = STEP_FIELDS[stepIndex]
+    const stepErrors = {}
+    fields.forEach((field) => {
+      const err = VALIDATORS[field](form[field])
+      if (err) stepErrors[field] = err
+    })
+    setErrors((prev) => ({ ...prev, ...stepErrors }))
+    setTouched((prev) => ({ ...prev, ...Object.fromEntries(fields.map((f) => [f, true])) }))
+    return Object.keys(stepErrors).length === 0
+  }
+
+  const next = () => {
+    if (!validateStep(step)) return
+    setStep((s) => Math.min(s + 1, STEP_KEYS.length - 1))
+  }
   const back = () => setStep((s) => Math.max(s - 1, 0))
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (!validateStep(step)) return
     navigate('/b2b/confirmation')
   }
+
+  const errorProps = (field) => ({
+    'aria-invalid': Boolean(touched[field] && errors[field]),
+    'aria-describedby': touched[field] && errors[field] ? `${field}-error` : undefined,
+  })
+
+  const fieldClass = (field) =>
+    `mt-1 w-full rounded-lg border px-3 py-2 text-sm ${
+      touched[field] && errors[field] ? 'border-red-400' : 'border-cacao-200'
+    }`
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
@@ -69,7 +124,7 @@ export default function B2BWizard() {
         ))}
       </ol>
 
-      <form onSubmit={handleSubmit} className="rounded-2xl border border-cacao-100 bg-white p-6 sm:p-8">
+      <form onSubmit={handleSubmit} noValidate className="rounded-2xl border border-cacao-100 bg-white p-6 sm:p-8">
         {step === 0 && (
           <div className="flex flex-col gap-5">
             <h2 className="font-serif text-xl font-semibold text-cacao-900">{t('wizard_step1')}</h2>
@@ -96,10 +151,14 @@ export default function B2BWizard() {
                 id="wizard-quantity"
                 type="number"
                 min={50}
+                step={1}
                 value={form.quantity}
                 onChange={(e) => update('quantity', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm"
+                onBlur={handleBlur('quantity')}
+                className={fieldClass('quantity')}
+                {...errorProps('quantity')}
               />
+              <FieldError id="quantity-error" error={touched.quantity && errors.quantity} />
             </div>
           </div>
         )}
@@ -123,11 +182,25 @@ export default function B2BWizard() {
               <label htmlFor="wizard-company-name" className="text-xs font-medium text-cacao-500">Company Name</label>
               <input
                 id="wizard-company-name"
-                required
                 value={form.companyName}
                 onChange={(e) => update('companyName', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm"
+                onBlur={handleBlur('companyName')}
+                className={fieldClass('companyName')}
+                {...errorProps('companyName')}
               />
+              <FieldError id="companyName-error" error={touched.companyName && errors.companyName} />
+            </div>
+            <div>
+              <label htmlFor="wizard-contact-name" className="text-xs font-medium text-cacao-500">Contact Name</label>
+              <input
+                id="wizard-contact-name"
+                value={form.contactName}
+                onChange={(e) => update('contactName', e.target.value)}
+                onBlur={handleBlur('contactName')}
+                className={fieldClass('contactName')}
+                {...errorProps('contactName')}
+              />
+              <FieldError id="contactName-error" error={touched.contactName && errors.contactName} />
             </div>
           </div>
         )}
@@ -189,17 +262,36 @@ export default function B2BWizard() {
                 <dt className="text-cacao-600">Company</dt>
                 <dd className="font-medium text-cacao-800">{form.companyName || '—'}</dd>
               </div>
+              <div>
+                <dt className="text-cacao-600">Contact</dt>
+                <dd className="font-medium text-cacao-800">{form.contactName || '—'}</dd>
+              </div>
             </dl>
             <div>
               <label htmlFor="wizard-email" className="text-xs font-medium text-cacao-500">Contact Email</label>
               <input
                 id="wizard-email"
-                required
                 type="email"
                 value={form.email}
                 onChange={(e) => update('email', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm"
+                onBlur={handleBlur('email')}
+                className={fieldClass('email')}
+                {...errorProps('email')}
               />
+              <FieldError id="email-error" error={touched.email && errors.email} />
+            </div>
+            <div>
+              <label htmlFor="wizard-phone" className="text-xs font-medium text-cacao-500">Contact Phone</label>
+              <input
+                id="wizard-phone"
+                type="tel"
+                value={form.phone}
+                onChange={(e) => update('phone', e.target.value)}
+                onBlur={handleBlur('phone')}
+                className={fieldClass('phone')}
+                {...errorProps('phone')}
+              />
+              <FieldError id="phone-error" error={touched.phone && errors.phone} />
             </div>
           </div>
         )}

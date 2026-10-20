@@ -3,8 +3,49 @@ import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
+import {
+  validateName,
+  validateCity,
+  validateState,
+  validatePhone,
+  validateEmail,
+  validateCardNumber,
+  validateExpiry,
+  validateCVC,
+  validateRequired,
+  currentMonthValue,
+} from '../utils/validators'
 
-function Field({ id, label, ...inputProps }) {
+const FIELDS = [
+  { name: 'email', label: 'Email', type: 'email', validate: validateEmail },
+  { name: 'phone', label: 'Phone', type: 'tel', validate: validatePhone },
+  { name: 'firstName', label: 'First Name', validate: (v) => validateName(v, 'First name') },
+  { name: 'lastName', label: 'Last Name', validate: (v) => validateName(v, 'Last name') },
+  { name: 'address', label: 'Address', validate: (v) => validateRequired(v, 'Address') },
+  { name: 'city', label: 'City', validate: validateCity },
+  { name: 'state', label: 'State', validate: validateState },
+  { name: 'zip', label: 'ZIP', validate: (v) => validateRequired(v, 'ZIP code') },
+  {
+    name: 'cardNumber',
+    label: 'Card Number',
+    inputMode: 'numeric',
+    autoComplete: 'cc-number',
+    validate: validateCardNumber,
+  },
+  {
+    name: 'expiry',
+    label: 'Expiration Date',
+    type: 'month',
+    min: currentMonthValue(),
+    validate: validateExpiry,
+  },
+  { name: 'cvc', label: 'CVC', inputMode: 'numeric', maxLength: 4, validate: validateCVC },
+]
+
+const INITIAL_VALUES = Object.fromEntries(FIELDS.map((f) => [f.name, '']))
+
+function Field({ id, label, error, type = 'text', ...inputProps }) {
+  const errorId = `${id}-error`
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={id} className="sr-only">
@@ -12,10 +53,20 @@ function Field({ id, label, ...inputProps }) {
       </label>
       <input
         id={id}
-        placeholder={label}
-        className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
+        type={type}
+        placeholder={type === 'month' ? undefined : label}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? errorId : undefined}
+        className={`rounded-lg border px-3 py-2 text-sm outline-none focus:border-cacao-500 ${
+          error ? 'border-red-400' : 'border-cacao-200'
+        }`}
         {...inputProps}
       />
+      {error && (
+        <p id={errorId} className="text-xs text-red-600">
+          {error}
+        </p>
+      )}
     </div>
   )
 }
@@ -26,10 +77,59 @@ export default function Checkout() {
   const { locale, t } = useLocale()
   const navigate = useNavigate()
 
+  const [values, setValues] = useState(INITIAL_VALUES)
+  const [errors, setErrors] = useState({})
+  const [touched, setTouched] = useState({})
+
+  const fieldByName = Object.fromEntries(FIELDS.map((f) => [f.name, f]))
+
+  const runValidation = (name, value) => fieldByName[name].validate(value)
+
+  const handleChange = (name) => (e) => {
+    const value = e.target.value
+    setValues((prev) => ({ ...prev, [name]: value }))
+    if (touched[name]) {
+      setErrors((prev) => ({ ...prev, [name]: runValidation(name, value) }))
+    }
+  }
+
+  const handleBlur = (name) => () => {
+    setTouched((prev) => ({ ...prev, [name]: true }))
+    setErrors((prev) => ({ ...prev, [name]: runValidation(name, values[name]) }))
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    const nextErrors = {}
+    FIELDS.forEach((f) => {
+      const err = runValidation(f.name, values[f.name])
+      if (err) nextErrors[f.name] = err
+    })
+    setErrors(nextErrors)
+    setTouched(Object.fromEntries(FIELDS.map((f) => [f.name, true])))
+
+    if (Object.keys(nextErrors).length > 0) return
+
     clearCart()
     navigate('/order-confirmation')
+  }
+
+  const fieldProps = (name) => {
+    const field = fieldByName[name]
+    return {
+      id: `checkout-${name}`,
+      label: field.label,
+      type: field.type,
+      inputMode: field.inputMode,
+      maxLength: field.maxLength,
+      min: field.min,
+      autoComplete: field.autoComplete,
+      value: values[name],
+      onChange: handleChange(name),
+      onBlur: handleBlur(name),
+      error: touched[name] ? errors[name] : undefined,
+    }
   }
 
   return (
@@ -49,14 +149,14 @@ export default function Checkout() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
+      <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-8">
           <fieldset className="flex flex-col gap-4 rounded-2xl border border-cacao-100 bg-white p-6">
             <legend className="px-1 font-serif text-lg font-semibold text-cacao-900">
               {t('checkout_contact')}
             </legend>
-            <Field id="checkout-email" label="Email" required type="email" />
-            <Field id="checkout-phone" label="Phone" required type="tel" />
+            <Field {...fieldProps('email')} />
+            <Field {...fieldProps('phone')} />
           </fieldset>
 
           <fieldset className="flex flex-col gap-4 rounded-2xl border border-cacao-100 bg-white p-6">
@@ -64,14 +164,14 @@ export default function Checkout() {
               {t('checkout_shipping')}
             </legend>
             <div className="grid grid-cols-2 gap-4">
-              <Field id="checkout-first-name" label="First Name" required />
-              <Field id="checkout-last-name" label="Last Name" required />
+              <Field {...fieldProps('firstName')} />
+              <Field {...fieldProps('lastName')} />
             </div>
-            <Field id="checkout-address" label="Address" required />
+            <Field {...fieldProps('address')} />
             <div className="grid grid-cols-3 gap-4">
-              <Field id="checkout-city" label="City" required />
-              <Field id="checkout-state" label="State" required />
-              <Field id="checkout-zip" label="ZIP" required />
+              <Field {...fieldProps('city')} />
+              <Field {...fieldProps('state')} />
+              <Field {...fieldProps('zip')} />
             </div>
           </fieldset>
 
@@ -79,10 +179,10 @@ export default function Checkout() {
             <legend className="px-1 font-serif text-lg font-semibold text-cacao-900">
               {t('checkout_payment')}
             </legend>
-            <Field id="checkout-card-number" label="Card Number" required />
+            <Field {...fieldProps('cardNumber')} />
             <div className="grid grid-cols-2 gap-4">
-              <Field id="checkout-card-expiry" label="MM / YY" required />
-              <Field id="checkout-card-cvc" label="CVC" required />
+              <Field {...fieldProps('expiry')} />
+              <Field {...fieldProps('cvc')} />
             </div>
           </fieldset>
         </div>

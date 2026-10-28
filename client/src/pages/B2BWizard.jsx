@@ -46,8 +46,14 @@ export default function B2BWizard() {
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
+  const [contactSubmitAttempted, setContactSubmitAttempted] = useState(false)
 
-  const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }))
+  const update = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }))
+    if (touched[field]) {
+      setErrors((prev) => ({ ...prev, [field]: VALIDATORS[field](value) }))
+    }
+  }
 
   const handleBlur = (field) => () => {
     setTouched((prev) => ({ ...prev, [field]: true }))
@@ -61,31 +67,59 @@ export default function B2BWizard() {
       const err = VALIDATORS[field](form[field])
       if (err) stepErrors[field] = err
     })
-    setErrors((prev) => ({ ...prev, ...stepErrors }))
+    setErrors((prev) => {
+      const nextErrors = { ...prev }
+      fields.forEach((field) => {
+        if (stepErrors[field]) nextErrors[field] = stepErrors[field]
+        else delete nextErrors[field]
+      })
+      return nextErrors
+    })
     setTouched((prev) => ({ ...prev, ...Object.fromEntries(fields.map((f) => [f, true])) }))
     return Object.keys(stepErrors).length === 0
   }
 
   const next = () => {
     if (!validateStep(step)) return
+    setContactSubmitAttempted(false)
     setStep((s) => Math.min(s + 1, STEP_KEYS.length - 1))
   }
   const back = () => setStep((s) => Math.max(s - 1, 0))
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (step >= STEP_KEYS.length - 1) return
+    next()
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key !== 'Enter' || !(e.target instanceof HTMLInputElement) || e.target.type === 'file') return
+    e.preventDefault()
+    if (step < STEP_KEYS.length - 1) next()
+  }
+
+  const handleFinalSubmit = () => {
+    setContactSubmitAttempted(true)
     if (!validateStep(step)) return
     navigate('/b2b/confirmation')
   }
 
-  const errorProps = (field) => ({
-    'aria-invalid': Boolean(touched[field] && errors[field]),
-    'aria-describedby': touched[field] && errors[field] ? `${field}-error` : undefined,
-  })
+  const shouldShowError = (field) =>
+    field === 'email' || field === 'phone'
+      ? contactSubmitAttempted
+      : touched[field]
+
+  const errorProps = (field) => {
+    const showError = shouldShowError(field) && errors[field]
+    return {
+      'aria-invalid': Boolean(showError),
+      'aria-describedby': showError ? `${field}-error` : undefined,
+    }
+  }
 
   const fieldClass = (field) =>
     `mt-1 w-full rounded-lg border px-3 py-2 text-sm ${
-      touched[field] && errors[field] ? 'border-red-400' : 'border-cacao-200'
+      shouldShowError(field) && errors[field] ? 'border-red-400' : 'border-cacao-200'
     }`
 
   return (
@@ -124,7 +158,7 @@ export default function B2BWizard() {
         ))}
       </ol>
 
-      <form onSubmit={handleSubmit} noValidate className="rounded-2xl border border-cacao-100 bg-white p-6 sm:p-8">
+      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} noValidate className="rounded-2xl border border-cacao-100 bg-white p-6 sm:p-8">
         {step === 0 && (
           <div className="flex flex-col gap-5">
             <h2 className="font-serif text-xl font-semibold text-cacao-900">{t('wizard_step1')}</h2>
@@ -274,11 +308,10 @@ export default function B2BWizard() {
                 type="email"
                 value={form.email}
                 onChange={(e) => update('email', e.target.value)}
-                onBlur={handleBlur('email')}
                 className={fieldClass('email')}
                 {...errorProps('email')}
               />
-              <FieldError id="email-error" error={touched.email && errors.email} />
+              <FieldError id="email-error" error={shouldShowError('email') && errors.email} />
             </div>
             <div>
               <label htmlFor="wizard-phone" className="text-xs font-medium text-cacao-500">Contact Phone</label>
@@ -287,11 +320,10 @@ export default function B2BWizard() {
                 type="tel"
                 value={form.phone}
                 onChange={(e) => update('phone', e.target.value)}
-                onBlur={handleBlur('phone')}
                 className={fieldClass('phone')}
                 {...errorProps('phone')}
               />
-              <FieldError id="phone-error" error={touched.phone && errors.phone} />
+              <FieldError id="phone-error" error={shouldShowError('phone') && errors.phone} />
             </div>
           </div>
         )}
@@ -315,7 +347,8 @@ export default function B2BWizard() {
             </button>
           ) : (
             <button
-              type="submit"
+              type="button"
+              onClick={handleFinalSubmit}
               className="rounded-full bg-gold-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-gold-500"
             >
               {t('wizard_submit')}

@@ -67,9 +67,12 @@ function loadAddresses(storageKey) {
 }
 
 export default function Account() {
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, logout, updateFirstName } = useAuth()
   const { locale, t } = useLocale()
   const [tab, setTab] = useState('profile')
+  const [firstName, setFirstName] = useState(user?.firstName ?? '')
+  const [profileNameError, setProfileNameError] = useState('')
+  const [profileSaved, setProfileSaved] = useState(false)
   const storageKey = `solcacao-addresses:${user?.email?.toLowerCase() ?? 'unknown'}`
   const [savedAddresses, setSavedAddresses] = useState(() => loadAddresses(storageKey))
   const [addressFormOpen, setAddressFormOpen] = useState(false)
@@ -128,6 +131,22 @@ export default function Account() {
     }
   }
 
+  const saveProfile = (event) => {
+    event.preventDefault()
+    const error = validateName(firstName, 'Name')
+    if (error) {
+      setProfileNameError(t('account_profile_name_error'))
+      setProfileSaved(false)
+      return
+    }
+
+    const trimmedName = firstName.trim()
+    updateFirstName(trimmedName)
+    setFirstName(trimmedName)
+    setProfileNameError('')
+    setProfileSaved(true)
+  }
+
   const formatDate = (date) =>
     new Intl.DateTimeFormat(locale === 'es' ? 'es' : 'en', {
       year: 'numeric',
@@ -170,39 +189,53 @@ export default function Account() {
 
         <div className="rounded-2xl border border-cacao-100 bg-white p-6">
           {tab === 'profile' && (
-            <div className="flex flex-col gap-4">
-              <h2 className="font-serif text-lg font-semibold text-cacao-900">Profile Details</h2>
+            <form onSubmit={saveProfile} noValidate className="flex flex-col gap-4">
+              <h2 className="font-serif text-lg font-semibold text-cacao-900">{t('account_profile_title')}</h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="account-first-name" className="text-xs font-medium text-cacao-500">First Name</label>
+                  <label htmlFor="account-first-name" className="text-xs font-medium text-cacao-500">{t('account_profile_first_name')}</label>
                   <input
                     id="account-first-name"
-                    defaultValue={user.firstName}
-                    className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm"
+                    value={firstName}
+                    onChange={(event) => {
+                      setFirstName(event.target.value)
+                      setProfileNameError('')
+                      setProfileSaved(false)
+                    }}
+                    aria-invalid={Boolean(profileNameError)}
+                    aria-describedby={profileNameError ? 'account-first-name-error' : undefined}
+                    className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${
+                      profileNameError ? 'border-red-400' : 'border-cacao-200'
+                    }`}
                   />
+                  {profileNameError && (
+                    <p id="account-first-name-error" className="mt-1 text-xs text-red-600">{profileNameError}</p>
+                  )}
                 </div>
                 <div>
-                  <label htmlFor="account-email" className="text-xs font-medium text-cacao-500">Email</label>
+                  <label htmlFor="account-email" className="text-xs font-medium text-cacao-500">{t('account_profile_email')}</label>
                   <input
                     id="account-email"
-                    defaultValue={user.email}
-                    className="mt-1 w-full rounded-lg border border-cacao-200 px-3 py-2 text-sm"
+                    readOnly
+                    value={user.email}
+                    className="mt-1 w-full rounded-lg border border-cacao-200 bg-cacao-50 px-3 py-2 text-sm text-cacao-500"
                   />
                 </div>
                 <div>
-                  <label htmlFor="account-type" className="text-xs font-medium text-cacao-500">Account Type</label>
+                  <label htmlFor="account-type" className="text-xs font-medium text-cacao-500">{t('account_profile_type')}</label>
                   <input
                     id="account-type"
                     disabled
-                    value={user.accountType === 'b2b' ? 'Business / Wholesale' : 'Individual / Retail'}
+                    value={user.accountType === 'b2b' ? t('account_type_b2b') : t('account_type_retail')}
                     className="mt-1 w-full rounded-lg border border-cacao-200 bg-cacao-50 px-3 py-2 text-sm text-cacao-500"
                   />
                 </div>
               </div>
-              <button className="w-fit rounded-full bg-cacao-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cacao-600">
-                Save Changes
+              {profileSaved && <p role="status" className="text-sm text-green-700">{t('account_profile_saved')}</p>}
+              <button type="submit" className="w-fit rounded-full bg-cacao-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cacao-600">
+                {t('account_profile_save')}
               </button>
-            </div>
+            </form>
           )}
 
           {tab === 'addresses' && (

@@ -19,6 +19,11 @@ export function AuthProvider({ children }) {
         setUser({ email, firstName, accountType })
         setModalOpen(false)
       },
+      updateFirstName: (firstName) => {
+        setUser((currentUser) =>
+          currentUser ? { ...currentUser, firstName } : currentUser
+        )
+      },
       logout: () => setUser(null),
       isModalOpen,
       modalView,

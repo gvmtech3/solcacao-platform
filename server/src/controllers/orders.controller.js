@@ -1,4 +1,4 @@
-import Cart from '../models/Cart.js'
+import { getOrCreateCart } from './cart.controller.js'
 import Order from '../models/Order.js'
 import { ApiError } from '../utils/ApiError.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
@@ -7,9 +7,8 @@ import { generateOrderNumber } from '../utils/referenceNumbers.js'
 export const createOrder = asyncHandler(async (req, res) => {
   const shipping = req.validated
 
-  const cart = await Cart.findOne({ userId: req.user._id, status: 'active' }).populate(
-    'items.productId'
-  )
+  const cart = await getOrCreateCart(req)
+  await cart.populate('items.productId')
   if (!cart || cart.items.length === 0) {
     throw ApiError.badRequest('Your cart is empty.')
   }
@@ -27,7 +26,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   const totalAmount = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
 
   const order = await Order.create({
-    userId: req.user._id,
+    userId: req.user?._id || null,
     orderNumber: generateOrderNumber(),
     totalAmount,
     items,

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
+import { api, ApiError } from '../utils/apiClient'
 import {
   validateName,
   validateCity,
@@ -72,7 +73,7 @@ function Field({ id, label, error, type = 'text', ...inputProps }) {
 }
 
 export default function Checkout() {
-  const { items, subtotal, clearCart } = useCart()
+  const { items, subtotal, refresh } = useCart()
   const { isAuthenticated, openLogin } = useAuth()
   const { locale, t } = useLocale()
   const navigate = useNavigate()
@@ -80,6 +81,8 @@ export default function Checkout() {
   const [values, setValues] = useState(INITIAL_VALUES)
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
 
   const fieldByName = Object.fromEntries(FIELDS.map((f) => [f.name, f]))
 
@@ -98,8 +101,9 @@ export default function Checkout() {
     setErrors((prev) => ({ ...prev, [name]: runValidation(name, values[name]) }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setSubmitError(null)
 
     const nextErrors = {}
     FIELDS.forEach((f) => {
@@ -111,8 +115,25 @@ export default function Checkout() {
 
     if (Object.keys(nextErrors).length > 0) return
 
-    clearCart()
-    navigate('/order-confirmation')
+    setSubmitting(true)
+    try {
+      const { order } = await api.post('/orders', {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        phone: values.phone,
+        addressLine1: values.address,
+        city: values.city,
+        state: values.state,
+        zipCode: values.zip,
+      })
+      await refresh()
+      navigate('/order-confirmation', { state: { order } })
+    } catch (err) {
+      setSubmitError(err instanceof ApiError ? err.message : 'Unable to place your order. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const fieldProps = (name) => {
@@ -206,12 +227,17 @@ export default function Checkout() {
             <span>{t('cart_subtotal')}</span>
             <span>${subtotal.toFixed(2)}</span>
           </div>
+          {submitError && (
+            <p role="alert" className="mt-3 text-sm text-red-600">
+              {submitError}
+            </p>
+          )}
           <button
             type="submit"
-            disabled={items.length === 0}
+            disabled={items.length === 0 || submitting}
             className="mt-5 w-full rounded-full bg-cacao-700 py-3 text-sm font-semibold text-white hover:bg-cacao-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {t('checkout_place_order')}
+            {submitting ? 'Placing Order…' : t('checkout_place_order')}
           </button>
         </div>
       </form>

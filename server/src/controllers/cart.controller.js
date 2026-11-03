@@ -7,7 +7,7 @@ function guestSessionIdFrom(req) {
   return req.header('x-guest-session-id') || null
 }
 
-async function getOrCreateCart(req) {
+export async function getOrCreateCart(req) {
   if (req.user) {
     let cart = await Cart.findOne({ userId: req.user._id, status: 'active' })
     if (!cart) cart = await Cart.create({ userId: req.user._id })

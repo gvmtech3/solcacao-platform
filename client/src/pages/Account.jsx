@@ -1,37 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { User, MapPin, Package, LogOut, Plus, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { validateCity, validateName, validateRequired, validateState } from '../utils/validators'
+import { api } from '../utils/apiClient'
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'addresses', label: 'Addresses', icon: MapPin },
   { id: 'orders', label: 'Order History', icon: Package },
-]
-
-const SAMPLE_ORDERS = [
-  {
-    number: 'SC-2026-1048',
-    date: '2026-10-12',
-    status: 'delivered',
-    total: 49.0,
-    items: [
-      { nameEn: 'Madagascar Single-Origin 72%', nameEs: 'Origen Único Madagascar 72%', quantity: 2 },
-      { nameEn: 'Sea Salt Caramel Truffle Box', nameEs: 'Trufas de Caramelo y Sal Marina', quantity: 1 },
-    ],
-  },
-  {
-    number: 'SC-2026-1057',
-    date: '2026-10-18',
-    status: 'processing',
-    total: 37.75,
-    items: [
-      { nameEn: 'Ecuador Arriba Nacional 85%', nameEs: 'Arriba Nacional Ecuador 85%', quantity: 1 },
-      { nameEn: 'Espresso Cacao Truffle Box', nameEs: 'Trufas de Café y Cacao', quantity: 1 },
-    ],
-  },
 ]
 
 const EMPTY_ADDRESS = {
@@ -79,6 +57,27 @@ export default function Account() {
   const [addressForm, setAddressForm] = useState(EMPTY_ADDRESS)
   const [addressErrors, setAddressErrors] = useState({})
   const [addressTouched, setAddressTouched] = useState({})
+  const [orders, setOrders] = useState([])
+  const [ordersLoading, setOrdersLoading] = useState(true)
+
+  useEffect(() => {
+    if (!isAuthenticated) return undefined
+    let cancelled = false
+    api
+      .get('/orders')
+      .then((data) => {
+        if (!cancelled) setOrders(data.orders)
+      })
+      .catch(() => {
+        if (!cancelled) setOrders([])
+      })
+      .finally(() => {
+        if (!cancelled) setOrdersLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated])
 
   if (!isAuthenticated) return <Navigate to="/" replace />
 
@@ -131,7 +130,7 @@ export default function Account() {
     }
   }
 
-  const saveProfile = (event) => {
+  const saveProfile = async (event) => {
     event.preventDefault()
     const error = validateName(firstName, 'Name')
     if (error) {
@@ -141,10 +140,15 @@ export default function Account() {
     }
 
     const trimmedName = firstName.trim()
-    updateFirstName(trimmedName)
-    setFirstName(trimmedName)
-    setProfileNameError('')
-    setProfileSaved(true)
+    const success = await updateFirstName(trimmedName)
+    if (success) {
+      setFirstName(trimmedName)
+      setProfileNameError('')
+      setProfileSaved(true)
+    } else {
+      setProfileSaved(false)
+      setProfileNameError('Unable to save changes. Please try again.')
+    }
   }
 
   const formatDate = (date) =>
@@ -152,7 +156,7 @@ export default function Account() {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    }).format(new Date(`${date}T12:00:00`))
+    }).format(new Date(date))
 
   const formatPrice = (price) =>
     new Intl.NumberFormat(locale === 'es' ? 'es' : 'en', {
@@ -335,41 +339,44 @@ export default function Account() {
 
           {tab === 'orders' && (
             <div className="flex flex-col gap-4">
-              <div>
-                <h2 className="font-serif text-lg font-semibold text-cacao-900">{t('account_orders_title')}</h2>
-                <p className="mt-1 text-sm text-cacao-500">{t('account_orders_sample_notice')}</p>
-              </div>
-              <div className="flex flex-col gap-4">
-                {SAMPLE_ORDERS.map((order) => (
-                  <article key={order.number} className="rounded-xl border border-cacao-100 p-4 sm:p-5">
-                    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-cacao-100 pb-4">
-                      <div>
-                        <h3 className="font-semibold text-cacao-900">
-                          {t('account_order_number')} {order.number}
-                        </h3>
-                        <p className="mt-1 text-sm text-cacao-500">
-                          {t('account_order_date')}: {formatDate(order.date)}
-                        </p>
+              <h2 className="font-serif text-lg font-semibold text-cacao-900">{t('account_orders_title')}</h2>
+              {ordersLoading ? (
+                <p className="text-sm text-cacao-500">Loading…</p>
+              ) : orders.length === 0 ? (
+                <p className="text-sm text-cacao-500">{t('account_orders_empty')}</p>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {orders.map((order) => (
+                    <article key={order._id} className="rounded-xl border border-cacao-100 p-4 sm:p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-cacao-100 pb-4">
+                        <div>
+                          <h3 className="font-semibold text-cacao-900">
+                            {t('account_order_number')} {order.orderNumber}
+                          </h3>
+                          <p className="mt-1 text-sm text-cacao-500">
+                            {t('account_order_date')}: {formatDate(order.placedAt)}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-gold-300/20 px-3 py-1 text-xs font-semibold text-cacao-800">
+                          {t(`account_order_status_${order.status}`)}
+                        </span>
                       </div>
-                      <span className="rounded-full bg-gold-300/20 px-3 py-1 text-xs font-semibold text-cacao-800">
-                        {t(`account_order_status_${order.status}`)}
-                      </span>
-                    </div>
-                    <ul className="flex flex-col gap-2 py-4 text-sm">
-                      {order.items.map((item) => (
-                        <li key={item.nameEn} className="flex justify-between gap-4 text-cacao-600">
-                          <span>{locale === 'es' ? item.nameEs : item.nameEn}</span>
-                          <span className="shrink-0">× {item.quantity}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="flex justify-between border-t border-cacao-100 pt-3 text-sm font-semibold text-cacao-900">
-                      <span>{t('account_order_total')}</span>
-                      <span>{formatPrice(order.total)}</span>
-                    </div>
-                  </article>
-                ))}
-              </div>
+                      <ul className="flex flex-col gap-2 py-4 text-sm">
+                        {order.items.map((item) => (
+                          <li key={item.productId} className="flex justify-between gap-4 text-cacao-600">
+                            <span>{locale === 'es' ? item.nameEs : item.nameEn}</span>
+                            <span className="shrink-0">× {item.quantity}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="flex justify-between border-t border-cacao-100 pt-3 text-sm font-semibold text-cacao-900">
+                        <span>{t('account_order_total')}</span>
+                        <span>{formatPrice(order.totalAmount)}</span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

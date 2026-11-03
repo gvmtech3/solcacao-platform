@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Check, Gift } from 'lucide-react'
-import { products } from '../data/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
+import { useProducts } from '../context/ProductsContext'
 import ProductImage from '../components/common/ProductImage'
 
 const MAX_PIECES = 9
@@ -10,6 +10,7 @@ const MAX_PIECES = 9
 export default function SamplerBuilder() {
   const { t, locale } = useLocale()
   const { addItem, openDrawer } = useCart()
+  const { products, loading } = useProducts()
   const [selected, setSelected] = useState([])
 
   const toggle = (product) => {
@@ -26,6 +27,10 @@ export default function SamplerBuilder() {
   const handleAddSampler = () => {
     selected.forEach((product) => addItem(product, 1))
     openDrawer()
+  }
+
+  if (loading) {
+    return <div className="py-32 text-center text-cacao-500">Loading…</div>
   }
 
   return (

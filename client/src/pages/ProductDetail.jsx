@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Minus, Plus } from 'lucide-react'
-import { products } from '../data/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
+import { useProducts } from '../context/ProductsContext'
 import ProductCard from '../components/common/ProductCard'
 import ProductImage from '../components/common/ProductImage'
 import NotFound from './NotFound'
@@ -12,7 +12,12 @@ export default function ProductDetail() {
   const { id } = useParams()
   const { locale, t } = useLocale()
   const { addItem } = useCart()
+  const { products, loading } = useProducts()
   const [quantity, setQuantity] = useState(1)
+
+  if (loading) {
+    return <div className="py-32 text-center text-cacao-500">Loading…</div>
+  }
 
   const product = products.find((p) => String(p.id) === id)
   if (!product) return <NotFound />

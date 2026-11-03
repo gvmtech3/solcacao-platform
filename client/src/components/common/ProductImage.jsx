@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useLocale } from '../../context/LocaleContext'
+import { getSwatch } from '../../utils/productSwatch'
 
 function BarIcon({ className }) {
   return (
@@ -59,11 +60,12 @@ export default function ProductImage({ product, className = '', iconClassName = 
   const [imageFailed, setImageFailed] = useState(false)
   const name = locale === 'es' ? product.nameEs : product.nameEn
   const hasPhoto = Boolean(product.imageUrl) && !imageFailed
+  const swatch = getSwatch(product)
 
   return (
     <div
       {...(!hasPhoto ? { role: 'img', 'aria-label': name } : {})}
-      className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br ${product.swatch} ${className}`}
+      className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br ${swatch} ${className}`}
     >
       {hasPhoto ? (
         <img

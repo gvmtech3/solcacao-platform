@@ -5,13 +5,15 @@ import { useLocale } from '../../context/LocaleContext'
 import useEscapeKey from '../../hooks/useEscapeKey'
 
 export default function AuthModal() {
-  const { isModalOpen, modalView, setModalView, closeModal, login, register } = useAuth()
+  const { isModalOpen, modalView, setModalView, closeModal, login, register, authError, clearAuthError } =
+    useAuth()
   const { t } = useLocale()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [accountType, setAccountType] = useState('retail')
+  const [submitting, setSubmitting] = useState(false)
 
   useEscapeKey(isModalOpen, closeModal)
 
@@ -19,13 +21,15 @@ export default function AuthModal() {
 
   const isLogin = modalView === 'login'
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setSubmitting(true)
     if (isLogin) {
-      login({ email, accountType })
+      await login({ email, password })
     } else {
-      register({ email, firstName, accountType })
+      await register({ email, password, firstName, accountType })
     }
+    setSubmitting(false)
   }
 
   return (
@@ -89,10 +93,12 @@ export default function AuthModal() {
               id="auth-password"
               type="password"
               required
+              minLength={isLogin ? undefined : 8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="rounded-lg border border-cacao-200 px-3 py-2 text-sm outline-none focus:border-cacao-500"
             />
+            {!isLogin && <p className="text-xs text-cacao-400">At least 8 characters.</p>}
           </div>
 
           {!isLogin && (
@@ -121,9 +127,16 @@ export default function AuthModal() {
             </div>
           )}
 
+          {authError && (
+            <p role="alert" className="text-sm text-red-600">
+              {authError}
+            </p>
+          )}
+
           <button
             type="submit"
-            className="mt-2 w-full rounded-full bg-cacao-700 py-2.5 text-sm font-semibold text-white hover:bg-cacao-600"
+            disabled={submitting}
+            className="mt-2 w-full rounded-full bg-cacao-700 py-2.5 text-sm font-semibold text-white hover:bg-cacao-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isLogin ? t('login_submit') : t('register_title')}
           </button>
@@ -133,7 +146,10 @@ export default function AuthModal() {
           {isLogin ? t('login_switch') : t('register_switch')}{' '}
           <button
             type="button"
-            onClick={() => setModalView(isLogin ? 'register' : 'login')}
+            onClick={() => {
+              clearAuthError()
+              setModalView(isLogin ? 'register' : 'login')
+            }}
             className="font-semibold text-cacao-800 hover:underline"
           >
             {isLogin ? t('register_title') : t('login_submit')}

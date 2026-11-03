@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Check, UploadCloud } from 'lucide-react'
 import { useLocale } from '../context/LocaleContext'
 import { validateName, validateEmail, validatePhone, validateRequired, validateQuantity } from '../utils/validators'
+import { api, ApiError } from '../utils/apiClient'
 
 const STEP_KEYS = ['wizard_step1', 'wizard_step2', 'wizard_step3', 'wizard_step4']
 
@@ -37,6 +38,7 @@ export default function B2BWizard() {
     cacaoProfile: CACAO_PROFILES[0],
     quantity: 250,
     fileName: '',
+    file: null,
     packaging: PACKAGING_OPTIONS[0],
     notes: '',
     companyName: '',
@@ -47,6 +49,8 @@ export default function B2BWizard() {
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
   const [contactSubmitAttempted, setContactSubmitAttempted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
 
   const update = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -98,10 +102,31 @@ export default function B2BWizard() {
     if (step < STEP_KEYS.length - 1) next()
   }
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     setContactSubmitAttempted(true)
+    setSubmitError(null)
     if (!validateStep(step)) return
-    navigate('/b2b/confirmation')
+
+    const formData = new FormData()
+    formData.append('companyName', form.companyName)
+    formData.append('contactName', form.contactName)
+    formData.append('email', form.email)
+    formData.append('phone', form.phone)
+    formData.append('cacaoProfile', form.cacaoProfile)
+    formData.append('estimatedQuantity', String(form.quantity))
+    formData.append('packagingPreference', form.packaging)
+    if (form.notes) formData.append('notes', form.notes)
+    if (form.file) formData.append('brandAsset', form.file)
+
+    setSubmitting(true)
+    try {
+      const { quote } = await api.post('/b2b/quotes', formData, { isFormData: true })
+      navigate('/b2b/confirmation', { state: { quoteNumber: quote.quoteNumber } })
+    } catch (err) {
+      setSubmitError(err instanceof ApiError ? err.message : 'Unable to submit your request. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const shouldShowError = (field) =>
@@ -208,8 +233,12 @@ export default function B2BWizard() {
               <span className="text-xs text-cacao-600">Click to browse</span>
               <input
                 type="file"
+                accept=".pdf,.svg,.ai"
                 className="hidden"
-                onChange={(e) => update('fileName', e.target.files?.[0]?.name || '')}
+                onChange={(e) => {
+                  const selected = e.target.files?.[0] || null
+                  setForm((prev) => ({ ...prev, file: selected, fileName: selected?.name || '' }))
+                }}
               />
             </label>
             <div>
@@ -325,6 +354,11 @@ export default function B2BWizard() {
               />
               <FieldError id="phone-error" error={shouldShowError('phone') && errors.phone} />
             </div>
+            {submitError && (
+              <p role="alert" className="text-sm text-red-600">
+                {submitError}
+              </p>
+            )}
           </div>
         )}
 
@@ -349,9 +383,10 @@ export default function B2BWizard() {
             <button
               type="button"
               onClick={handleFinalSubmit}
-              className="rounded-full bg-gold-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-gold-500"
+              disabled={submitting}
+              className="rounded-full bg-gold-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-gold-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {t('wizard_submit')}
+              {submitting ? 'Submitting…' : t('wizard_submit')}
             </button>
           )}
         </div>

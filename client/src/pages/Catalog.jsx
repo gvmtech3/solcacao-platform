@@ -2,8 +2,7 @@ import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { useLocale } from '../context/LocaleContext'
-import { products, origins } from '../data/products'
-import { categories } from '../data/categories'
+import { useProducts } from '../context/ProductsContext'
 import ProductCard from '../components/common/ProductCard'
 import useEscapeKey from '../hooks/useEscapeKey'
 
@@ -16,6 +15,7 @@ const SORT_OPTIONS = [
 
 export default function Catalog() {
   const { t, locale } = useLocale()
+  const { products, categories, origins, loading } = useProducts()
   const [searchParams, setSearchParams] = useSearchParams()
   const activeCategory = searchParams.get('category') || 'all'
   const searchTerm = (searchParams.get('search') || '').trim().toLocaleLowerCase(locale)
@@ -71,7 +71,7 @@ export default function Catalog() {
       default:
         return list
     }
-  }, [activeCategory, selectedOrigins, cacaoRange, maxPrice, sort, searchTerm, locale])
+  }, [products, activeCategory, selectedOrigins, cacaoRange, maxPrice, sort, searchTerm, locale])
 
   const FilterPanel = (
     <div className="flex flex-col gap-8">
@@ -157,6 +157,10 @@ export default function Catalog() {
       </button>
     </div>
   )
+
+  if (loading) {
+    return <div className="py-32 text-center text-cacao-500">Loading…</div>
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">

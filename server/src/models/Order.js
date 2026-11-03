@@ -30,7 +30,7 @@ const orderItemSchema = new Schema(
 
 const orderSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     orderNumber: { type: String, required: true, unique: true },
     totalAmount: { type: Number, required: true, min: 0 },
     status: {

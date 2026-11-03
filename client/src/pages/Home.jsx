@@ -1,15 +1,19 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { useLocale } from '../context/LocaleContext'
-import { products } from '../data/products'
-import { categories } from '../data/categories'
+import { useProducts } from '../context/ProductsContext'
 import ProductCard from '../components/common/ProductCard'
 import ProductImage from '../components/common/ProductImage'
 import SectionHeading from '../components/common/SectionHeading'
 
 export default function Home() {
   const { t, locale } = useLocale()
+  const { products, categories, loading } = useProducts()
   const seasonal = products.filter((p) => p.productType === 'seasonal')
+
+  if (loading) {
+    return <div className="py-32 text-center text-cacao-500">Loading…</div>
+  }
 
   return (
     <div className="flex flex-col gap-20 pb-20">

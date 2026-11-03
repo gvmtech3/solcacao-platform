@@ -1,65 +1,100 @@
-import { createContext, useContext, useMemo, useReducer, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { api } from '../utils/apiClient'
+import { useAuth } from './AuthContext'
 
 const CartContext = createContext(null)
 
-function cartReducer(state, action) {
-  switch (action.type) {
-    case 'ADD': {
-      const existing = state.find((item) => item.product.id === action.product.id)
-      if (existing) {
-        return state.map((item) =>
-          item.product.id === action.product.id
-            ? { ...item, quantity: item.quantity + action.quantity }
-            : item
-        )
-      }
-      return [...state, { product: action.product, quantity: action.quantity }]
-    }
-    case 'REMOVE':
-      return state.filter((item) => item.product.id !== action.productId)
-    case 'UPDATE_QUANTITY':
-      return state.map((item) =>
-        item.product.id === action.productId
-          ? { ...item, quantity: Math.max(1, action.quantity) }
-          : item
-      )
-    case 'CLEAR':
-      return []
-    default:
-      return state
-  }
+function normalizeItems(items = []) {
+  return items
+    .filter((item) => item.product)
+    .map((item) => ({
+      product: { ...item.product, id: item.product._id },
+      quantity: item.quantity,
+    }))
 }
 
 export function CartProvider({ children }) {
-  const [items, dispatch] = useReducer(cartReducer, [])
+  const { authLoading, isAuthenticated } = useAuth()
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
   const [isDrawerOpen, setDrawerOpen] = useState(false)
 
-  const value = useMemo(() => {
-    const addItem = (product, quantity = 1) => {
-      dispatch({ type: 'ADD', product, quantity })
-      setDrawerOpen(true)
+  const refresh = useCallback(async () => {
+    try {
+      const data = await api.get('/cart')
+      setItems(normalizeItems(data.items))
+    } catch (err) {
+      console.error('Failed to load cart', err)
+    } finally {
+      setLoading(false)
     }
-    const removeItem = (productId) => dispatch({ type: 'REMOVE', productId })
-    const updateQuantity = (productId, quantity) =>
-      dispatch({ type: 'UPDATE_QUANTITY', productId, quantity })
-    const clearCart = () => dispatch({ type: 'CLEAR' })
+  }, [])
 
-    const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
-    const subtotal = items.reduce((sum, item) => sum + item.quantity * item.product.price, 0)
+  // Wait for the auth/me check to resolve first so a freshly-logged-in user's
+  // merged cart is fetched, not a stale guest cart.
+  useEffect(() => {
+    if (authLoading) return
+    refresh()
+  }, [authLoading, isAuthenticated, refresh])
 
-    return {
+  const addItem = async (product, quantity = 1) => {
+    setDrawerOpen(true)
+    try {
+      const data = await api.post('/cart/items', { productId: product.id || product._id, quantity })
+      setItems(normalizeItems(data.items))
+    } catch (err) {
+      console.error('Failed to add item to cart', err)
+    }
+  }
+
+  const updateQuantity = async (productId, quantity) => {
+    try {
+      const data = await api.patch(`/cart/items/${productId}`, { quantity: Math.max(1, quantity) })
+      setItems(normalizeItems(data.items))
+    } catch (err) {
+      console.error('Failed to update cart item', err)
+    }
+  }
+
+  const removeItem = async (productId) => {
+    try {
+      const data = await api.delete(`/cart/items/${productId}`)
+      setItems(normalizeItems(data.items))
+    } catch (err) {
+      console.error('Failed to remove cart item', err)
+    }
+  }
+
+  const clearCart = async () => {
+    try {
+      const data = await api.delete('/cart')
+      setItems(normalizeItems(data.items))
+    } catch (err) {
+      console.error('Failed to clear cart', err)
+    }
+  }
+
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
+  const subtotal = items.reduce((sum, item) => sum + item.quantity * item.product.price, 0)
+
+  const value = useMemo(
+    () => ({
       items,
+      loading,
       addItem,
       removeItem,
       updateQuantity,
       clearCart,
+      refresh,
       itemCount,
       subtotal,
       isDrawerOpen,
       openDrawer: () => setDrawerOpen(true),
       closeDrawer: () => setDrawerOpen(false),
-    }
-  }, [items, isDrawerOpen])
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [items, loading, isDrawerOpen]
+  )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { MessageCircle, CheckCircle2 } from 'lucide-react'
 import { useLocale } from '../context/LocaleContext'
 import { validateName, validateEmail, validateMessage } from '../utils/validators'
+import { api, ApiError } from '../utils/apiClient'
 
 const CATEGORIES = [
   { value: 'general', labelEn: 'General Inquiry', labelEs: 'Consulta General' },
@@ -17,6 +18,8 @@ export default function Contact() {
   const [values, setValues] = useState(INITIAL_VALUES)
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
 
   const validators = {
     name: (v) => validateName(v, 'Name'),
@@ -38,8 +41,9 @@ export default function Contact() {
     setErrors((prev) => ({ ...prev, [name]: validators[name](values[name]) }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setSubmitError(null)
 
     const nextErrors = {}
     Object.entries(validators).forEach(([name, validate]) => {
@@ -51,7 +55,15 @@ export default function Contact() {
 
     if (Object.keys(nextErrors).length > 0) return
 
-    setSubmitted(true)
+    setSubmitting(true)
+    try {
+      await api.post('/contact', values)
+      setSubmitted(true)
+    } catch (err) {
+      setSubmitError(err instanceof ApiError ? err.message : 'Unable to send your message. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -141,12 +153,19 @@ export default function Contact() {
             )}
           </div>
 
+          {submitError && (
+            <p role="alert" className="text-sm text-red-600">
+              {submitError}
+            </p>
+          )}
+
           <button
             type="submit"
-            className="mt-2 flex w-fit items-center gap-2 rounded-full bg-cacao-700 px-6 py-3 text-sm font-semibold text-white hover:bg-cacao-600"
+            disabled={submitting}
+            className="mt-2 flex w-fit items-center gap-2 rounded-full bg-cacao-700 px-6 py-3 text-sm font-semibold text-white hover:bg-cacao-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <MessageCircle size={16} />
-            {t('contact_submit')}
+            {submitting ? 'Sending…' : t('contact_submit')}
           </button>
         </form>
       )}

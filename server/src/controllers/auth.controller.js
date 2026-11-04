@@ -14,10 +14,6 @@ export const register = asyncHandler(async (req, res) => {
   const passwordHash = await bcrypt.hash(password, 12)
   const user = await User.create({ firstName, lastName, email, passwordHash, accountType })
 
-  await mergeGuestCartIntoUser(req.header('x-guest-session-id'), user._id)
-
-  const token = signToken(user)
-  setAuthCookie(res, token)
   res.status(201).json({ user: user.toSafeJSON() })
 })
 

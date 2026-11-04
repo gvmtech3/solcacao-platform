@@ -14,6 +14,7 @@ export default function AuthModal() {
   const [firstName, setFirstName] = useState('')
   const [accountType, setAccountType] = useState('retail')
   const [submitting, setSubmitting] = useState(false)
+  const [registrationSuccess, setRegistrationSuccess] = useState(false)
 
   useEscapeKey(isModalOpen, closeModal)
 
@@ -27,7 +28,12 @@ export default function AuthModal() {
     if (isLogin) {
       await login({ email, password })
     } else {
-      await register({ email, password, firstName, accountType })
+      const registered = await register({ email, password, firstName, accountType })
+      if (registered) {
+        setPassword('')
+        setRegistrationSuccess(true)
+        setModalView('login')
+      }
     }
     setSubmitting(false)
   }
@@ -53,6 +59,12 @@ export default function AuthModal() {
         <h2 id="auth-modal-title" className="mb-5 font-serif text-2xl font-semibold text-cacao-900">
           {isLogin ? t('login_title') : t('register_title')}
         </h2>
+
+        {isLogin && registrationSuccess && (
+          <p role="status" className="mb-4 text-sm text-green-700">
+            {t('register_success')}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {!isLogin && (
@@ -148,6 +160,7 @@ export default function AuthModal() {
             type="button"
             onClick={() => {
               clearAuthError()
+              setRegistrationSuccess(false)
               setModalView(isLogin ? 'register' : 'login')
             }}
             className="font-semibold text-cacao-800 hover:underline"

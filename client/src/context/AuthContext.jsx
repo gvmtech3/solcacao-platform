@@ -53,15 +53,13 @@ export function AuthProvider({ children }) {
       register: async ({ email, password, firstName, lastName, accountType = 'retail' }) => {
         setAuthError(null)
         try {
-          const data = await api.post('/auth/register', {
+          await api.post('/auth/register', {
             email,
             password,
             firstName,
             lastName,
             accountType,
           })
-          setUser(normalizeUser(data.user))
-          setModalOpen(false)
           return true
         } catch (err) {
           setAuthError(err instanceof ApiError ? err.message : 'Unable to create an account.')

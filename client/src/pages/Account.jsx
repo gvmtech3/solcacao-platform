@@ -59,9 +59,11 @@ export default function Account() {
   const [addressTouched, setAddressTouched] = useState({})
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(true)
+  const isB2B = user?.accountType === 'b2b'
+  const visibleTabs = isB2B ? TABS.filter(({ id }) => id === 'profile') : TABS
 
   useEffect(() => {
-    if (!isAuthenticated) return undefined
+    if (!isAuthenticated || user?.accountType !== 'retail') return undefined
     let cancelled = false
     api
       .get('/orders')
@@ -77,7 +79,7 @@ export default function Account() {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, user?.accountType])
 
   if (authLoading) return <div className="py-32 text-center text-cacao-500">Loading…</div>
   if (!isAuthenticated) return <Navigate to="/" replace />
@@ -171,7 +173,7 @@ export default function Account() {
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[220px_1fr]">
         <aside className="flex flex-col gap-1">
-          {TABS.map(({ id, label, icon: Icon }) => (
+          {visibleTabs.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setTab(id)}
@@ -243,7 +245,7 @@ export default function Account() {
             </form>
           )}
 
-          {tab === 'addresses' && (
+          {!isB2B && tab === 'addresses' && (
             <div className="flex flex-col gap-4">
               <h2 className="font-serif text-lg font-semibold text-cacao-900">{t('account_addresses_title')}</h2>
               {savedAddresses.storageError && (
@@ -338,7 +340,7 @@ export default function Account() {
             </div>
           )}
 
-          {tab === 'orders' && (
+          {!isB2B && tab === 'orders' && (
             <div className="flex flex-col gap-4">
               <h2 className="font-serif text-lg font-semibold text-cacao-900">{t('account_orders_title')}</h2>
               {ordersLoading ? (

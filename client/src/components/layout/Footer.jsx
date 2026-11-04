@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom'
 import { useLocale } from '../../context/LocaleContext'
+import { useAuth } from '../../context/AuthContext'
 
 export default function Footer() {
   const { t } = useLocale()
+  const { isAuthenticated, user } = useAuth()
+  const showRetailNav = !isAuthenticated || user.accountType === 'retail'
+  const showB2BNav = !isAuthenticated || user.accountType === 'b2b'
 
   return (
     <footer className="border-t border-cacao-100 bg-cacao-900 text-cacao-100">
@@ -16,15 +20,21 @@ export default function Footer() {
           <span className="text-sm font-semibold uppercase tracking-wide text-cacao-300">
             {t('footer_shop')}
           </span>
-          <Link to="/shop" className="text-sm text-cacao-200 hover:text-white">
-            {t('nav_shop')}
-          </Link>
-          <Link to="/b2b" className="text-sm text-cacao-200 hover:text-white">
-            {t('nav_b2b')}
-          </Link>
-          <Link to="/sampler" className="text-sm text-cacao-200 hover:text-white">
-            {t('nav_sampler')}
-          </Link>
+          {showRetailNav && (
+            <Link to="/shop" className="text-sm text-cacao-200 hover:text-white">
+              {t('nav_shop')}
+            </Link>
+          )}
+          {showB2BNav && (
+            <Link to="/b2b" className="text-sm text-cacao-200 hover:text-white">
+              {t('nav_b2b')}
+            </Link>
+          )}
+          {showRetailNav && (
+            <Link to="/sampler" className="text-sm text-cacao-200 hover:text-white">
+              {t('nav_sampler')}
+            </Link>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">

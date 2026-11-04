@@ -24,13 +24,16 @@ export default function Navbar() {
   useEscapeKey(mobileOpen, () => setMobileOpen(false))
   useEscapeKey(searchOpen, () => setSearchOpen(false))
 
+  const showRetailNav = !isAuthenticated || user.accountType === 'retail'
+  const showB2BNav = !isAuthenticated || user.accountType === 'b2b'
+
   const navLinks = [
-    { to: '/shop', label: t('nav_shop') },
-    { to: '/b2b', label: t('nav_b2b') },
-    { to: '/sampler', label: t('nav_sampler') },
+    showRetailNav && { to: '/shop', label: t('nav_shop') },
+    showB2BNav && { to: '/b2b', label: t('nav_b2b') },
+    showRetailNav && { to: '/sampler', label: t('nav_sampler') },
     { to: '/contact', label: t('nav_contact') },
     { to: '/about', label: t('nav_about') },
-  ]
+  ].filter(Boolean)
 
   const submitSearch = (event) => {
     event.preventDefault()
@@ -64,14 +67,16 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-1.5 sm:gap-3">
-          <button
-            type="button"
-            onClick={() => setSearchOpen((v) => !v)}
-            className="rounded-full p-2 text-cacao-700 hover:bg-cacao-100"
-            aria-label="Search"
-          >
-            <Search size={19} />
-          </button>
+          {showRetailNav && (
+            <button
+              type="button"
+              onClick={() => setSearchOpen((v) => !v)}
+              className="rounded-full p-2 text-cacao-700 hover:bg-cacao-100"
+              aria-label="Search"
+            >
+              <Search size={19} />
+            </button>
+          )}
 
           <button
             type="button"
@@ -102,19 +107,21 @@ export default function Navbar() {
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={openDrawer}
-            className="relative rounded-full p-2 text-cacao-700 hover:bg-cacao-100"
-            aria-label="Open cart"
-          >
-            <ShoppingBag size={19} />
-            {itemCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-cacao-700 px-1 text-[10px] font-bold text-white">
-                {itemCount}
-              </span>
-            )}
-          </button>
+          {showRetailNav && (
+            <button
+              type="button"
+              onClick={openDrawer}
+              className="relative rounded-full p-2 text-cacao-700 hover:bg-cacao-100"
+              aria-label="Open cart"
+            >
+              <ShoppingBag size={19} />
+              {itemCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-cacao-700 px-1 text-[10px] font-bold text-white">
+                  {itemCount}
+                </span>
+              )}
+            </button>
+          )}
         </div>
       </div>
 

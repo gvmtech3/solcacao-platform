@@ -4,6 +4,7 @@ import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 import { ProductsProvider } from './context/ProductsContext'
 import Layout from './components/layout/Layout'
+import ChannelRoute from './components/routing/ChannelRoute'
 
 import Home from './pages/Home'
 import Catalog from './pages/Catalog'
@@ -28,17 +29,87 @@ export default function App() {
           <CartProvider>
             <Routes>
               <Route element={<Layout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/shop" element={<Catalog />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/order-confirmation" element={<OrderConfirmation />} />
+                <Route
+                  path="/"
+                  element={
+                    <ChannelRoute channel="retail">
+                      <Home />
+                    </ChannelRoute>
+                  }
+                />
+                <Route
+                  path="/shop"
+                  element={
+                    <ChannelRoute channel="retail">
+                      <Catalog />
+                    </ChannelRoute>
+                  }
+                />
+                <Route
+                  path="/product/:id"
+                  element={
+                    <ChannelRoute channel="retail">
+                      <ProductDetail />
+                    </ChannelRoute>
+                  }
+                />
+                <Route
+                  path="/cart"
+                  element={
+                    <ChannelRoute channel="retail">
+                      <Cart />
+                    </ChannelRoute>
+                  }
+                />
+                <Route
+                  path="/checkout"
+                  element={
+                    <ChannelRoute channel="retail">
+                      <Checkout />
+                    </ChannelRoute>
+                  }
+                />
+                <Route
+                  path="/order-confirmation"
+                  element={
+                    <ChannelRoute channel="retail">
+                      <OrderConfirmation />
+                    </ChannelRoute>
+                  }
+                />
+                <Route
+                  path="/sampler"
+                  element={
+                    <ChannelRoute channel="retail">
+                      <SamplerBuilder />
+                    </ChannelRoute>
+                  }
+                />
                 <Route path="/account" element={<Account />} />
-                <Route path="/b2b" element={<B2BLanding />} />
-                <Route path="/b2b/custom-order" element={<B2BWizard />} />
-                <Route path="/b2b/confirmation" element={<QuoteConfirmation />} />
-                <Route path="/sampler" element={<SamplerBuilder />} />
+                <Route
+                  path="/b2b"
+                  element={
+                    <ChannelRoute channel="b2b">
+                      <B2BLanding />
+                    </ChannelRoute>
+                  }
+                />
+                <Route
+                  path="/b2b/custom-order"
+                  element={
+                    <ChannelRoute channel="b2b">
+                      <B2BWizard />
+                    </ChannelRoute>
+                  }
+                />
+                <Route
+                  path="/b2b/confirmation"
+                  element={
+                    <ChannelRoute channel="b2b">
+                      <QuoteConfirmation />
+                    </ChannelRoute>
+                  }
+                />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
                 <Route path="*" element={<NotFound />} />

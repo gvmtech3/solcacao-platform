@@ -45,7 +45,7 @@ function loadAddresses(storageKey) {
 }
 
 export default function Account() {
-  const { user, isAuthenticated, logout, updateFirstName } = useAuth()
+  const { user, isAuthenticated, authLoading, logout, updateFirstName } = useAuth()
   const { locale, t } = useLocale()
   const [tab, setTab] = useState('profile')
   const [firstName, setFirstName] = useState(user?.firstName ?? '')
@@ -79,6 +79,7 @@ export default function Account() {
     }
   }, [isAuthenticated])
 
+  if (authLoading) return <div className="py-32 text-center text-cacao-500">Loading…</div>
   if (!isAuthenticated) return <Navigate to="/" replace />
 
   const validateAddress = (address) => {

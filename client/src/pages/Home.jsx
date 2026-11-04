@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { useLocale } from '../context/LocaleContext'
 import { useProducts } from '../context/ProductsContext'
+import { useAuth } from '../context/AuthContext'
 import ProductCard from '../components/common/ProductCard'
 import ProductImage from '../components/common/ProductImage'
 import SectionHeading from '../components/common/SectionHeading'
@@ -9,6 +10,11 @@ import SectionHeading from '../components/common/SectionHeading'
 export default function Home() {
   const { t, locale } = useLocale()
   const { products, categories, loading } = useProducts()
+  const { isAuthenticated } = useAuth()
+  // ChannelRoute already keeps b2b-authenticated users off this page, so
+  // "authenticated" here always means a retail account that doesn't need
+  // the cross-channel B2B upsell.
+  const showB2BCrossSell = !isAuthenticated
   const seasonal = products.filter((p) => p.productType === 'seasonal')
 
   if (loading) {
@@ -33,12 +39,14 @@ export default function Home() {
               >
                 {t('hero_cta')} <ArrowRight size={16} />
               </Link>
-              <Link
-                to="/b2b"
-                className="rounded-full border border-cream-50/40 px-6 py-3 text-sm font-semibold text-cream-50 hover:bg-white/10"
-              >
-                {t('hero_cta_b2b')}
-              </Link>
+              {showB2BCrossSell && (
+                <Link
+                  to="/b2b"
+                  className="rounded-full border border-cream-50/40 px-6 py-3 text-sm font-semibold text-cream-50 hover:bg-white/10"
+                >
+                  {t('hero_cta_b2b')}
+                </Link>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -87,22 +95,24 @@ export default function Home() {
       </section>
 
       {/* B2B teaser */}
-      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-start gap-6 rounded-3xl bg-cacao-100 p-8 sm:p-12 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-col gap-3">
-            <h2 className="font-serif text-2xl font-bold text-cacao-900 sm:text-3xl">
-              {t('b2b_hero_title')}
-            </h2>
-            <p className="max-w-lg text-cacao-600">{t('b2b_hero_subtitle')}</p>
+      {showB2BCrossSell && (
+        <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-start gap-6 rounded-3xl bg-cacao-100 p-8 sm:p-12 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3">
+              <h2 className="font-serif text-2xl font-bold text-cacao-900 sm:text-3xl">
+                {t('b2b_hero_title')}
+              </h2>
+              <p className="max-w-lg text-cacao-600">{t('b2b_hero_subtitle')}</p>
+            </div>
+            <Link
+              to="/b2b"
+              className="shrink-0 rounded-full bg-cacao-800 px-6 py-3 text-sm font-semibold text-white hover:bg-cacao-700"
+            >
+              {t('b2b_cta')}
+            </Link>
           </div>
-          <Link
-            to="/b2b"
-            className="shrink-0 rounded-full bg-cacao-800 px-6 py-3 text-sm font-semibold text-white hover:bg-cacao-700"
-          >
-            {t('b2b_cta')}
-          </Link>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   )
 }

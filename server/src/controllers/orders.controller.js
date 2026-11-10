@@ -5,6 +5,12 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { generateOrderNumber } from '../utils/referenceNumbers.js'
 
 export const createOrder = asyncHandler(async (req, res) => {
+  if (req.user && req.user.accountType !== 'retail') {
+    throw ApiError.forbidden(
+      'B2B accounts cannot place retail orders. Use the custom quote wizard instead.'
+    )
+  }
+
   const shipping = req.validated
 
   const cart = await getOrCreateCart(req)

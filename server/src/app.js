@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import morgan from 'morgan'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -19,6 +20,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export function createApp() {
   const app = express()
+
+  if (process.env.NODE_ENV !== 'test') {
+    app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
+  }
 
   app.use(
     cors({

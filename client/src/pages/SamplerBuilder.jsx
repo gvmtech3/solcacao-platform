@@ -4,6 +4,7 @@ import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import { useProducts } from '../context/ProductsContext'
 import ProductImage from '../components/common/ProductImage'
+import { api } from '../utils/apiClient'
 
 const MAX_PIECES = 9
 
@@ -12,6 +13,7 @@ export default function SamplerBuilder() {
   const { addItem, openDrawer } = useCart()
   const { products, loading } = useProducts()
   const [selected, setSelected] = useState([])
+  const [saving, setSaving] = useState(false)
 
   const toggle = (product) => {
     setSelected((prev) => {
@@ -24,7 +26,19 @@ export default function SamplerBuilder() {
 
   const total = useMemo(() => selected.reduce((sum, p) => sum + p.price, 0), [selected])
 
-  const handleAddSampler = () => {
+  const handleAddSampler = async () => {
+    setSaving(true)
+    try {
+      // Persist the sampler as its own record (for future reference/analytics),
+      // then add the pieces to the cart so the customer can check out as usual.
+      await api.post('/samplers', {
+        items: selected.map((product) => ({ productId: product.id, quantity: 1 })),
+      })
+    } catch (err) {
+      console.error('Failed to save sampler record', err)
+    } finally {
+      setSaving(false)
+    }
     selected.forEach((product) => addItem(product, 1))
     openDrawer()
   }
@@ -99,11 +113,11 @@ export default function SamplerBuilder() {
 
           <button
             type="button"
-            disabled={selected.length === 0}
+            disabled={selected.length === 0 || saving}
             onClick={handleAddSampler}
             className="mt-5 w-full rounded-full bg-cacao-700 py-2.5 text-sm font-semibold text-white hover:bg-cacao-600 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {t('sampler_add')}
+            {saving ? 'Adding…' : t('sampler_add')}
           </button>
         </div>
       </div>

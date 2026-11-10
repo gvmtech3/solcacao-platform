@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { api } from '../utils/apiClient'
 import { useAuth } from './AuthContext'
+import { useLocale } from './LocaleContext'
+import useToast from '../hooks/useToast'
 
 const CartContext = createContext(null)
 
@@ -15,6 +17,8 @@ function normalizeItems(items = []) {
 
 export function CartProvider({ children }) {
   const { authLoading, isAuthenticated } = useAuth()
+  const { t } = useLocale()
+  const showToast = useToast()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [isDrawerOpen, setDrawerOpen] = useState(false)
@@ -44,6 +48,7 @@ export function CartProvider({ children }) {
       setItems(normalizeItems(data.items))
     } catch (err) {
       console.error('Failed to add item to cart', err)
+      showToast(t('cart_action_error'), 'error')
     }
   }
 
@@ -53,6 +58,7 @@ export function CartProvider({ children }) {
       setItems(normalizeItems(data.items))
     } catch (err) {
       console.error('Failed to update cart item', err)
+      showToast(t('cart_action_error'), 'error')
     }
   }
 
@@ -62,6 +68,7 @@ export function CartProvider({ children }) {
       setItems(normalizeItems(data.items))
     } catch (err) {
       console.error('Failed to remove cart item', err)
+      showToast(t('cart_action_error'), 'error')
     }
   }
 
@@ -71,6 +78,7 @@ export function CartProvider({ children }) {
       setItems(normalizeItems(data.items))
     } catch (err) {
       console.error('Failed to clear cart', err)
+      showToast(t('cart_action_error'), 'error')
     }
   }
 

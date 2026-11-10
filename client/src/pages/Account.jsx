@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { validateName } from '../utils/validators'
 import { api } from '../utils/apiClient'
+import useToast from '../hooks/useToast'
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -14,10 +15,10 @@ const TABS = [
 export default function Account() {
   const { user, isAuthenticated, authLoading, logout, updateFirstName } = useAuth()
   const { locale, t } = useLocale()
+  const showToast = useToast()
   const [tab, setTab] = useState('profile')
   const [firstName, setFirstName] = useState(user?.firstName ?? '')
   const [profileNameError, setProfileNameError] = useState('')
-  const [profileSaved, setProfileSaved] = useState(false)
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(true)
   const isB2B = user?.accountType === 'b2b'
@@ -50,7 +51,6 @@ export default function Account() {
     const error = validateName(firstName, 'Name')
     if (error) {
       setProfileNameError(t('account_profile_name_error'))
-      setProfileSaved(false)
       return
     }
 
@@ -59,9 +59,8 @@ export default function Account() {
     if (success) {
       setFirstName(trimmedName)
       setProfileNameError('')
-      setProfileSaved(true)
+      showToast(t('account_profile_saved'))
     } else {
-      setProfileSaved(false)
       setProfileNameError('Unable to save changes. Please try again.')
     }
   }
@@ -98,7 +97,14 @@ export default function Account() {
             </button>
           ))}
           <button
-            onClick={logout}
+            onClick={async () => {
+              try {
+                await logout()
+                showToast(t('logout_success'))
+              } catch {
+                showToast(t('logout_error'), 'error')
+              }
+            }}
             className="mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-500 hover:bg-red-50"
           >
             <LogOut size={16} />
@@ -119,7 +125,6 @@ export default function Account() {
                     onChange={(event) => {
                       setFirstName(event.target.value)
                       setProfileNameError('')
-                      setProfileSaved(false)
                     }}
                     aria-invalid={Boolean(profileNameError)}
                     aria-describedby={profileNameError ? 'account-first-name-error' : undefined}
@@ -150,7 +155,6 @@ export default function Account() {
                   />
                 </div>
               </div>
-              {profileSaved && <p role="status" className="text-sm text-green-700">{t('account_profile_saved')}</p>}
               <button type="submit" className="w-fit rounded-full bg-cacao-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cacao-600">
                 {t('account_profile_save')}
               </button>

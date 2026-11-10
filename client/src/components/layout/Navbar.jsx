@@ -6,6 +6,7 @@ import { useLocale } from '../../context/LocaleContext'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import useEscapeKey from '../../hooks/useEscapeKey'
+import useToast from '../../hooks/useToast'
 
 const navLinkClass = ({ isActive }) =>
   `text-sm font-medium transition hover:text-cacao-600 ${
@@ -20,6 +21,17 @@ export default function Navbar() {
   const { locale, toggleLocale, t } = useLocale()
   const { itemCount, openDrawer } = useCart()
   const { isAuthenticated, user, openLogin, logout } = useAuth()
+  const showToast = useToast()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      showToast(t('logout_success'))
+    } catch {
+      showToast(t('logout_error'), 'error')
+    }
+    setMobileOpen(false)
+  }
 
   useEscapeKey(mobileOpen, () => setMobileOpen(false))
   useEscapeKey(searchOpen, () => setSearchOpen(false))
@@ -207,10 +219,7 @@ export default function Navbar() {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => {
-                      logout()
-                      setMobileOpen(false)
-                    }}
+                    onClick={handleLogout}
                     className="flex items-center gap-2 text-sm font-semibold text-cacao-700"
                   >
                     <User size={16} />

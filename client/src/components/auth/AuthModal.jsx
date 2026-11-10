@@ -3,18 +3,19 @@ import { X } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useLocale } from '../../context/LocaleContext'
 import useEscapeKey from '../../hooks/useEscapeKey'
+import useToast from '../../hooks/useToast'
 
 export default function AuthModal() {
   const { isModalOpen, modalView, setModalView, closeModal, login, register, authError, clearAuthError } =
     useAuth()
   const { t } = useLocale()
+  const showToast = useToast()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [accountType, setAccountType] = useState('retail')
   const [submitting, setSubmitting] = useState(false)
-  const [registrationSuccess, setRegistrationSuccess] = useState(false)
 
   useEscapeKey(isModalOpen, closeModal)
 
@@ -26,12 +27,13 @@ export default function AuthModal() {
     e.preventDefault()
     setSubmitting(true)
     if (isLogin) {
-      await login({ email, password })
+      const loggedIn = await login({ email, password })
+      if (loggedIn) showToast(t('login_success'))
     } else {
       const registered = await register({ email, password, firstName, accountType })
       if (registered) {
         setPassword('')
-        setRegistrationSuccess(true)
+        showToast(t('register_success'))
         setModalView('login')
       }
     }
@@ -59,12 +61,6 @@ export default function AuthModal() {
         <h2 id="auth-modal-title" className="mb-5 font-serif text-2xl font-semibold text-cacao-900">
           {isLogin ? t('login_title') : t('register_title')}
         </h2>
-
-        {isLogin && registrationSuccess && (
-          <p role="status" className="mb-4 text-sm text-green-700">
-            {t('register_success')}
-          </p>
-        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {!isLogin && (
@@ -160,7 +156,6 @@ export default function AuthModal() {
             type="button"
             onClick={() => {
               clearAuthError()
-              setRegistrationSuccess(false)
               setModalView(isLogin ? 'register' : 'login')
             }}
             className="font-semibold text-cacao-800 hover:underline"

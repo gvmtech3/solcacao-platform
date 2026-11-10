@@ -10,11 +10,20 @@ export function signToken(user) {
   )
 }
 
+// Secure cookies are only ever sent/stored by the browser over HTTPS. Tying
+// this directly to NODE_ENV would silently break login on a production
+// deploy that isn't behind TLS yet (e.g. a bare EC2 IP) - so it's its own
+// explicit flag, defaulting to "on" only once NODE_ENV=production AND no
+// override says otherwise.
+const COOKIE_SECURE = process.env.COOKIE_SECURE
+  ? process.env.COOKIE_SECURE === 'true'
+  : process.env.NODE_ENV === 'production'
+
 export function setAuthCookie(res, token) {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: COOKIE_SECURE,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
 }

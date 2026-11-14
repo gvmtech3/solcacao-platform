@@ -26,7 +26,6 @@ reference, see **[`server/README.md`](server/README.md)**.
 - [Scripts reference](#scripts-reference)
 - [Testing](#testing)
 - [Deployment](#deployment)
-- [Project documents](#project-documents)
 - [Known limitations](#known-limitations)
 
 ---
@@ -327,16 +326,6 @@ Key points if you go this route:
 - Keep MongoDB bound to `127.0.0.1` and never open port 27017 (or 5000) in
   your security group/firewall — only Nginx's port 80/443 should be
   public.
-
-## Project documents
-
-The `docs/` folder has the supporting project documentation:
-
-- `solcacao-project-requirements.docx` — original course/project brief
-- `SolCacao-Proposal.docx` — expanded project proposal
-- `SolCacao-ERD.pdf` / `.docx`, `SolCacao-Schema.pdf` — data model diagrams
-- `SolCacao-Accessibility-Report.docx` — WCAG 2.1 AA audit + fixes applied
-- `SolCacao-AI-Usage-Log.docx` — per-phase log of AI-assisted development
 
 ## Known limitations
 

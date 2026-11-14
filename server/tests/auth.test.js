@@ -117,9 +117,10 @@ describe('POST /api/auth/login', () => {
 })
 
 describe('GET /api/auth/me', () => {
-  it('requires a session', async () => {
+  it('returns a null user for a guest', async () => {
     const res = await request(app).get('/api/auth/me')
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(200)
+    expect(res.body.user).toBeNull()
   })
 
   it('returns the current user when logged in', async () => {
@@ -140,7 +141,7 @@ describe('GET /api/auth/me', () => {
 })
 
 describe('POST /api/auth/logout', () => {
-  it('clears the session so /me then fails', async () => {
+  it('clears the session so /me returns a guest response', async () => {
     await request(app).post('/api/auth/register').send({
       firstName: 'Jane',
       email: 'logout@example.com',
@@ -157,6 +158,7 @@ describe('POST /api/auth/logout', () => {
 
     const clearedCookie = logoutRes.headers['set-cookie'][0]
     const meRes = await request(app).get('/api/auth/me').set('Cookie', clearedCookie)
-    expect(meRes.status).toBe(401)
+    expect(meRes.status).toBe(200)
+    expect(meRes.body.user).toBeNull()
   })
 })

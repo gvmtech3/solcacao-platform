@@ -4,6 +4,7 @@ import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import { useProducts } from '../context/ProductsContext'
 import ProductImage from '../components/common/ProductImage'
+import Pagination, { PRODUCTS_PER_PAGE } from '../components/common/Pagination'
 import { api } from '../utils/apiClient'
 
 const MAX_PIECES = 9
@@ -14,6 +15,8 @@ export default function SamplerBuilder() {
   const { products, loading } = useProducts()
   const [selected, setSelected] = useState([])
   const [saving, setSaving] = useState(false)
+  const [page, setPage] = useState(1)
+  const visibleProducts = products.slice((page - 1) * PRODUCTS_PER_PAGE, page * PRODUCTS_PER_PAGE)
 
   const toggle = (product) => {
     setSelected((prev) => {
@@ -29,18 +32,22 @@ export default function SamplerBuilder() {
   const handleAddSampler = async () => {
     setSaving(true)
     try {
-      // Persist the sampler as its own record (for future reference/analytics),
-      // then add the pieces to the cart so the customer can check out as usual.
-      await api.post('/samplers', {
-        items: selected.map((product) => ({ productId: product.id, quantity: 1 })),
-      })
-    } catch (err) {
-      console.error('Failed to save sampler record', err)
+      try {
+        // Persist the sampler as its own record (for future reference/analytics).
+        await api.post('/samplers', {
+          items: selected.map((product) => ({ productId: product.id, quantity: 1 })),
+        })
+      } catch (err) {
+        console.error('Failed to save sampler record', err)
+      }
+
+      for (const product of selected) {
+        await addItem(product, 1, { openDrawer: false })
+      }
+      openDrawer()
     } finally {
       setSaving(false)
     }
-    selected.forEach((product) => addItem(product, 1))
-    openDrawer()
   }
 
   if (loading) {
@@ -58,33 +65,41 @@ export default function SamplerBuilder() {
       </div>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_300px]">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          {products.map((product) => {
-            const name = locale === 'es' ? product.nameEs : product.nameEn
-            const isSelected = selected.some((p) => p.id === product.id)
-            return (
-              <button
-                type="button"
-                key={product.id}
-                aria-pressed={isSelected}
-                onClick={() => toggle(product)}
-                className={`relative flex flex-col overflow-hidden rounded-2xl border-2 text-left transition ${
-                  isSelected ? 'border-cacao-700' : 'border-transparent'
-                }`}
-              >
-                <ProductImage product={product} className="h-28" iconClassName="h-1/2 w-1/2" />
-                {isSelected && (
-                  <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-cacao-700 text-white">
-                    <Check size={14} />
-                  </span>
-                )}
-                <div className="flex flex-col gap-0.5 bg-white p-3">
-                  <span className="text-xs font-medium leading-snug text-cacao-800">{name}</span>
-                  <span className="text-xs text-cacao-600">${product.price.toFixed(2)}</span>
-                </div>
-              </button>
-            )
-          })}
+        <div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {visibleProducts.map((product) => {
+              const name = locale === 'es' ? product.nameEs : product.nameEn
+              const isSelected = selected.some((p) => p.id === product.id)
+              return (
+                <button
+                  type="button"
+                  key={product.id}
+                  aria-pressed={isSelected}
+                  disabled={saving}
+                  onClick={() => toggle(product)}
+                  className={`relative flex flex-col overflow-hidden rounded-2xl border-2 text-left transition disabled:cursor-wait disabled:opacity-70 ${
+                    isSelected ? 'border-cacao-700' : 'border-transparent'
+                  }`}
+                >
+                  <ProductImage product={product} className="h-28" iconClassName="h-1/2 w-1/2" />
+                  {isSelected && (
+                    <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-cacao-700 text-white">
+                      <Check size={14} />
+                    </span>
+                  )}
+                  <div className="flex flex-col gap-0.5 bg-white p-3">
+                    <span className="text-xs font-medium leading-snug text-cacao-800">{name}</span>
+                    <span className="text-xs text-cacao-600">${product.price.toFixed(2)}</span>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+          <Pagination
+            page={page}
+            totalPages={Math.ceil(products.length / PRODUCTS_PER_PAGE)}
+            onPageChange={setPage}
+          />
         </div>
 
         <div className="h-fit rounded-2xl border border-cacao-100 bg-white p-6">

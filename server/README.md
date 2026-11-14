@@ -129,13 +129,13 @@ noted. Endpoints marked **Auth** require a valid session cookie;
 | POST | `/register` | — | `firstName, lastName?, email, password, accountType?` | Creates the account only — does **not** log in |
 | POST | `/login` | — | `email, password` | Sets the auth cookie; merges any guest cart |
 | POST | `/logout` | — | — | Clears the auth cookie |
-| GET | `/me` | Auth | — | Returns the current session's user |
+| GET | `/me` | — | — | Returns the current session's user, or `user: null` for a guest |
 
 ### Products & Categories
 
 | Method | Path | Auth | Query/Body | Notes |
 |---|---|---|---|---|
-| GET | `/products` | — | `category, origin, minCacao, maxPrice, search, sort` | `sort`: `price-asc \| price-desc \| cacao-desc` |
+| GET | `/products` | — | `category, origin, minCacao, maxPrice, search, sort, page, limit` | `sort`: `price-asc \| price-desc \| cacao-desc`; returns paginated products and total count |
 | GET | `/products/origins` | — | — | Distinct list of active product origins |
 | GET | `/products/:id` | — | — | 404 if not found |
 | GET | `/categories` | — | — | All categories |
@@ -148,8 +148,8 @@ the session cookie instead (header is ignored once logged in).
 | Method | Path | Auth | Body | Notes |
 |---|---|---|---|---|
 | GET | `/` | guest or Auth | — | Creates an empty cart if none exists yet |
-| POST | `/items` | guest or Auth | `productId, quantity` | Increments quantity if already in cart |
-| PATCH | `/items/:productId` | guest or Auth | `quantity` | Must be a positive integer |
+| POST | `/items` | guest or Auth | `productId, quantity?` | Increments quantity if already in cart; quantity defaults to 1 and cannot exceed available stock |
+| PATCH | `/items/:productId` | guest or Auth | `quantity` | Must be a positive integer no greater than available stock |
 | DELETE | `/items/:productId` | guest or Auth | — | |
 | DELETE | `/` | guest or Auth | — | Empties the cart |
 
@@ -157,7 +157,7 @@ the session cookie instead (header is ignored once logged in).
 
 | Method | Path | Auth | Body | Notes |
 |---|---|---|---|---|
-| POST | `/` | guest or Auth (retail only) | `firstName, lastName, email, phone, addressLine1, city, state, zipCode` | Reads the caller's current cart server-side; price/total are computed from the DB, never trusted from the client |
+| POST | `/` | guest or Auth (retail only) | `firstName, lastName, email, phone, addressLine1, city, state, zipCode` | Reads the caller's current cart server-side; checks and decrements inventory; price/total are computed from the DB, never trusted from the client |
 | GET | `/` | Auth | — | Current user's order history |
 
 ### B2B — `/b2b`

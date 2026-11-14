@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { useLocale } from '../context/LocaleContext'
@@ -5,6 +6,7 @@ import { useProducts } from '../context/ProductsContext'
 import { useAuth } from '../context/AuthContext'
 import ProductCard from '../components/common/ProductCard'
 import ProductImage from '../components/common/ProductImage'
+import Pagination, { PRODUCTS_PER_PAGE } from '../components/common/Pagination'
 import SectionHeading from '../components/common/SectionHeading'
 
 export default function Home() {
@@ -16,6 +18,11 @@ export default function Home() {
   // the cross-channel B2B upsell.
   const showB2BCrossSell = !isAuthenticated
   const seasonal = products.filter((p) => p.productType === 'seasonal')
+  const [seasonalPage, setSeasonalPage] = useState(1)
+  const seasonalProducts = seasonal.slice(
+    (seasonalPage - 1) * PRODUCTS_PER_PAGE,
+    seasonalPage * PRODUCTS_PER_PAGE
+  )
 
   if (loading) {
     return <div className="py-32 text-center text-cacao-500">Loading…</div>
@@ -88,10 +95,15 @@ export default function Home() {
       <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading title={t('seasonal_title')} />
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {seasonal.map((product) => (
+          {seasonalProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
+        <Pagination
+          page={seasonalPage}
+          totalPages={Math.ceil(seasonal.length / PRODUCTS_PER_PAGE)}
+          onPageChange={setSeasonalPage}
+        />
       </section>
 
       {/* B2B teaser */}

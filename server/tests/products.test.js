@@ -62,6 +62,27 @@ describe('GET /api/products', () => {
     expect(res.body.products[0].sku).toBe('SKU-B')
   })
 
+  it('paginates results and returns the total count', async () => {
+    await createProduct({ sku: 'PAGE-1' })
+    await createProduct({ sku: 'PAGE-2' })
+    await createProduct({ sku: 'PAGE-3' })
+    const res = await request(app).get('/api/products?page=2&limit=2')
+    expect(res.status).toBe(200)
+    expect(res.body.products).toHaveLength(1)
+    expect(res.body.total).toBe(3)
+    expect(res.body.page).toBe(2)
+    expect(res.body.limit).toBe(2)
+    expect(res.body.totalPages).toBe(2)
+  })
+
+  it('treats special regex characters in search as text', async () => {
+    await createProduct({ sku: 'REGEX-1', nameEn: 'Parentheses (Bar)' })
+    const res = await request(app).get('/api/products?search=(')
+    expect(res.status).toBe(200)
+    expect(res.body.products).toHaveLength(1)
+    expect(res.body.products[0].sku).toBe('REGEX-1')
+  })
+
   it('excludes inactive products', async () => {
     await createProduct({ sku: 'SKU-INACTIVE', isActive: false })
     const res = await request(app).get('/api/products')
@@ -80,6 +101,11 @@ describe('GET /api/products', () => {
   it('GET /api/products/:id 404s for an unknown id', async () => {
     const res = await request(app).get('/api/products/000000000000000000000000')
     expect(res.status).toBe(404)
+  })
+
+  it('GET /api/products/:id returns 400 for a malformed id', async () => {
+    const res = await request(app).get('/api/products/not-an-id')
+    expect(res.status).toBe(400)
   })
 
   it('GET /api/products/:id returns the product', async () => {

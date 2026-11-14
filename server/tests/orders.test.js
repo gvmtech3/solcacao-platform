@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../src/app.js'
+import Product from '../src/models/Product.js'
 import { connectTestDb, disconnectTestDb, clearCollections } from './helpers/db.js'
 import { createProduct } from './helpers/fixtures.js'
 import { registerAndLogin } from './helpers/auth.js'
@@ -56,9 +57,52 @@ describe('POST /api/orders (guest checkout)', () => {
     expect(res.body.order.userId).toBeNull()
     expect(res.body.order.totalAmount).toBe(20)
     expect(res.body.order.orderNumber).toMatch(/^SC-\d+$/)
+    const updatedProduct = await Product.findById(product._id)
+    expect(updatedProduct.inventory.stockQuantity).toBe(98)
 
     const cartRes = await request(app).get('/api/cart').set('x-guest-session-id', guestId)
     expect(cartRes.body.items).toHaveLength(0)
+  })
+
+  it('rejects checkout if stock falls below the cart quantity', async () => {
+    const product = await createProduct({ inventory: { stockQuantity: 1 } })
+    const guestId = 'out-of-stock-order'
+    await request(app)
+      .post('/api/cart/items')
+      .set('x-guest-session-id', guestId)
+      .send({ productId: product._id.toString(), quantity: 1 })
+
+    product.inventory.stockQuantity = 0
+    await product.save()
+
+    const res = await request(app)
+      .post('/api/orders')
+      .set('x-guest-session-id', guestId)
+      .send(SHIPPING)
+    expect(res.status).toBe(400)
+    expect(res.body.message).toMatch(/stock/i)
+  })
+
+  it('rejects invalid ZIP codes and accepts periods in city names', async () => {
+    const product = await createProduct()
+    const guestId = 'address-validation-guest'
+    await request(app)
+      .post('/api/cart/items')
+      .set('x-guest-session-id', guestId)
+      .send({ productId: product._id.toString(), quantity: 1 })
+
+    const invalidZip = await request(app)
+      .post('/api/orders')
+      .set('x-guest-session-id', guestId)
+      .send({ ...SHIPPING, city: 'St. Louis', zipCode: '!!!' })
+    expect(invalidZip.status).toBe(400)
+    expect(invalidZip.body.details.zipCode).toBeDefined()
+
+    const validAddress = await request(app)
+      .post('/api/orders')
+      .set('x-guest-session-id', guestId)
+      .send({ ...SHIPPING, city: 'St. Louis', zipCode: '63101' })
+    expect(validAddress.status).toBe(201)
   })
 })
 

@@ -78,6 +78,40 @@ describe('Guest cart', () => {
     expect(res.status).toBe(400)
   })
 
+  it('rejects invalid quantities, malformed product IDs, and quantities above stock', async () => {
+    const product = await createProduct({ inventory: { stockQuantity: 3 } })
+    const guestId = 'guest-invalid-input'
+
+    const decimalRes = await request(app)
+      .post('/api/cart/items')
+      .set('x-guest-session-id', guestId)
+      .send({ productId: product._id.toString(), quantity: 2.5 })
+    expect(decimalRes.status).toBe(400)
+
+    const idRes = await request(app)
+      .post('/api/cart/items')
+      .set('x-guest-session-id', guestId)
+      .send({ productId: 'not-an-object-id', quantity: 1 })
+    expect(idRes.status).toBe(400)
+
+    const stockRes = await request(app)
+      .post('/api/cart/items')
+      .set('x-guest-session-id', guestId)
+      .send({ productId: product._id.toString(), quantity: 4 })
+    expect(stockRes.status).toBe(400)
+    expect(stockRes.body.message).toMatch(/stock/i)
+  })
+
+  it('defaults the add quantity to one', async () => {
+    const product = await createProduct()
+    const res = await request(app)
+      .post('/api/cart/items')
+      .set('x-guest-session-id', 'guest-default-quantity')
+      .send({ productId: product._id.toString() })
+    expect(res.status).toBe(201)
+    expect(res.body.items[0].quantity).toBe(1)
+  })
+
   it('removes an item via DELETE', async () => {
     const product = await createProduct()
     const guestId = 'guest-5'

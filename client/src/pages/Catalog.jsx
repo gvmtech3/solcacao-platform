@@ -4,6 +4,7 @@ import { SlidersHorizontal, X } from 'lucide-react'
 import { useLocale } from '../context/LocaleContext'
 import { useProducts } from '../context/ProductsContext'
 import ProductCard from '../components/common/ProductCard'
+import Pagination, { PRODUCTS_PER_PAGE } from '../components/common/Pagination'
 import useEscapeKey from '../hooks/useEscapeKey'
 
 const SORT_OPTIONS = [
@@ -19,6 +20,7 @@ export default function Catalog() {
   const [searchParams, setSearchParams] = useSearchParams()
   const activeCategory = searchParams.get('category') || 'all'
   const searchTerm = (searchParams.get('search') || '').trim().toLocaleLowerCase(locale)
+  const requestedPage = Number(searchParams.get('page') || 1)
 
   const [selectedOrigins, setSelectedOrigins] = useState([])
   const [cacaoRange, setCacaoRange] = useState(40)
@@ -28,7 +30,22 @@ export default function Catalog() {
 
   useEscapeKey(filtersOpen, () => setFiltersOpen(false))
 
+  const resetPage = () => {
+    if (!searchParams.has('page')) return
+    const params = new URLSearchParams(searchParams)
+    params.delete('page')
+    setSearchParams(params, { replace: true })
+  }
+
+  const changePage = (nextPage) => {
+    const params = new URLSearchParams(searchParams)
+    if (nextPage === 1) params.delete('page')
+    else params.set('page', String(nextPage))
+    setSearchParams(params)
+  }
+
   const toggleOrigin = (origin) => {
+    resetPage()
     setSelectedOrigins((prev) =>
       prev.includes(origin) ? prev.filter((o) => o !== origin) : [...prev, origin]
     )
@@ -72,6 +89,13 @@ export default function Catalog() {
         return list
     }
   }, [products, activeCategory, selectedOrigins, cacaoRange, maxPrice, sort, searchTerm, locale])
+
+  const totalPages = Math.ceil(filtered.length / PRODUCTS_PER_PAGE)
+  const page = Math.min(
+    Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1,
+    Math.max(totalPages, 1)
+  )
+  const visibleProducts = filtered.slice((page - 1) * PRODUCTS_PER_PAGE, page * PRODUCTS_PER_PAGE)
 
   const FilterPanel = (
     <div className="flex flex-col gap-8">
@@ -127,7 +151,10 @@ export default function Catalog() {
           max={90}
           step={5}
           value={cacaoRange}
-          onChange={(e) => setCacaoRange(Number(e.target.value))}
+          onChange={(e) => {
+            resetPage()
+            setCacaoRange(Number(e.target.value))
+          }}
           aria-label={`${t('filter_cacao')}: ${cacaoRange}%+`}
           className="w-full accent-cacao-700"
         />
@@ -143,7 +170,10 @@ export default function Catalog() {
           max={30}
           step={1}
           value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value))}
+          onChange={(e) => {
+            resetPage()
+            setMaxPrice(Number(e.target.value))
+          }}
           aria-label={`${t('filter_price')}: $${maxPrice}`}
           className="w-full accent-cacao-700"
         />
@@ -175,7 +205,10 @@ export default function Catalog() {
           <select
             id="catalog-sort"
             value={sort}
-            onChange={(e) => setSort(e.target.value)}
+            onChange={(e) => {
+              resetPage()
+              setSort(e.target.value)
+            }}
             className="w-28 max-w-[35vw] min-w-0 rounded-full border border-cacao-200 px-2 py-1.5 text-xs text-cacao-700 outline-none sm:w-auto sm:max-w-none sm:px-3 sm:text-sm"
           >
             {SORT_OPTIONS.map((opt) => (
@@ -221,11 +254,12 @@ export default function Catalog() {
             <p className="text-cacao-500">No products match these filters.</p>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {filtered.map((product) => (
+              {visibleProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
+          <Pagination page={page} totalPages={totalPages} onPageChange={changePage} />
         </div>
       </div>
     </div>

@@ -15,6 +15,10 @@ export function errorHandler(err, req, res, next) {
     return res.status(409).json({ message: `That ${field} is already in use.` })
   }
 
+  if (err.name === 'CastError') {
+    return res.status(400).json({ message: 'Invalid ID format.' })
+  }
+
   if (err.name === 'MulterError' || /brand asset/i.test(err.message || '')) {
     return res.status(400).json({ message: err.message })
   }

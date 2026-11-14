@@ -4,6 +4,11 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 
 export const listProducts = asyncHandler(async (req, res) => {
   const { category, origin, minCacao, maxPrice, search, sort } = req.query
+  const page = Number(req.query.page ?? 1)
+  const limit = Number(req.query.limit ?? 20)
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 100) {
+    throw ApiError.badRequest('page must be a positive integer and limit must be between 1 and 100.')
+  }
 
   const filter = { isActive: true }
   if (category) filter.productType = category
@@ -14,10 +19,11 @@ export const listProducts = asyncHandler(async (req, res) => {
   if (minCacao) filter.cacaoPercentage = { $gte: Number(minCacao) }
   if (maxPrice) filter.price = { ...(filter.price || {}), $lte: Number(maxPrice) }
   if (search) {
+    const escapedSearch = String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     filter.$or = [
-      { nameEn: { $regex: search, $options: 'i' } },
-      { nameEs: { $regex: search, $options: 'i' } },
-      { origin: { $regex: search, $options: 'i' } },
+      { nameEn: { $regex: escapedSearch, $options: 'i' } },
+      { nameEs: { $regex: escapedSearch, $options: 'i' } },
+      { origin: { $regex: escapedSearch, $options: 'i' } },
     ]
   }
 
@@ -36,8 +42,11 @@ export const listProducts = asyncHandler(async (req, res) => {
       sortSpec = { createdAt: -1 }
   }
 
-  const products = await Product.find(filter).sort(sortSpec)
-  res.json({ products })
+  const [products, total] = await Promise.all([
+    Product.find(filter).sort(sortSpec).skip((page - 1) * limit).limit(limit),
+    Product.countDocuments(filter),
+  ])
+  res.json({ products, total, page, limit, totalPages: Math.ceil(total / limit) })
 })
 
 export const getProduct = asyncHandler(async (req, res) => {

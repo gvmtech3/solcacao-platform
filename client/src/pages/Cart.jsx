@@ -5,7 +5,7 @@ import { useLocale } from '../context/LocaleContext'
 import ProductImage from '../components/common/ProductImage'
 
 export default function Cart() {
-  const { items, updateQuantity, removeItem, subtotal } = useCart()
+  const { items, updateQuantity, updatingProductIds, removeItem, subtotal } = useCart()
   const { locale, t } = useLocale()
 
   return (
@@ -27,6 +27,7 @@ export default function Cart() {
           <ul className="flex flex-col divide-y divide-cacao-100 rounded-2xl border border-cacao-100 bg-white">
             {items.map(({ product, quantity }) => {
               const name = locale === 'es' ? product.nameEs : product.nameEn
+              const isUpdating = updatingProductIds.includes(product.id)
               return (
                 <li key={product.id} className="flex items-center gap-4 p-5">
                   <ProductImage product={product} className="h-20 w-20 shrink-0 rounded-xl" iconClassName="h-1/2 w-1/2" />
@@ -39,16 +40,20 @@ export default function Cart() {
                   <div className="flex items-center gap-2 rounded-full border border-cacao-200 px-2 py-1">
                     <button
                       type="button"
+                      disabled={isUpdating}
                       onClick={() => updateQuantity(product.id, quantity - 1)}
                       aria-label="Decrease quantity"
+                      className="disabled:cursor-wait disabled:opacity-50"
                     >
                       <Minus size={13} />
                     </button>
                     <span className="w-5 text-center text-sm">{quantity}</span>
                     <button
                       type="button"
+                      disabled={isUpdating}
                       onClick={() => updateQuantity(product.id, quantity + 1)}
                       aria-label="Increase quantity"
+                      className="disabled:cursor-wait disabled:opacity-50"
                     >
                       <Plus size={13} />
                     </button>

@@ -39,5 +39,5 @@ export const logout = asyncHandler(async (req, res) => {
 })
 
 export const me = asyncHandler(async (req, res) => {
-  res.json({ user: req.user.toSafeJSON() })
+  res.json({ user: req.user?.toSafeJSON() || null })
 })

@@ -1,8 +1,10 @@
 import { z } from 'zod'
 
 const NAME_PATTERN = /^[\p{L}\s'-]+$/u
+const CITY_PATTERN = /^[\p{L}\s.'-]+$/u
 const STATE_PATTERN = /^[\p{L}\s.'-]+$/u
 const PHONE_CHARS_PATTERN = /^\+?[0-9\s().-]+$/
+const ZIP_PATTERN = /^\d{5}(?:-\d{4})?$/
 
 const nameField = (label) =>
   z
@@ -22,6 +24,17 @@ const phoneField = z
   }, 'Phone number must have 7–15 digits.')
 
 const emailField = z.string().trim().min(1, 'Email is required.').email('Enter a valid email address.')
+const cityField = (label) =>
+  z
+    .string()
+    .trim()
+    .min(1, `${label} is required.`)
+    .regex(CITY_PATTERN, `${label} can only contain letters, spaces, hyphens, periods, and apostrophes.`)
+const zipCodeField = z
+  .string()
+  .trim()
+  .min(1, 'ZIP code is required.')
+  .regex(ZIP_PATTERN, 'Enter a valid ZIP code (12345 or 12345-6789).')
 
 export const registerSchema = z.object({
   firstName: nameField('First name'),
@@ -40,19 +53,19 @@ export const addressSchema = z.object({
   label: z.string().trim().optional(),
   addressLine1: z.string().trim().min(1, 'Address is required.'),
   addressLine2: z.string().trim().optional(),
-  city: nameField('City'),
+  city: cityField('City'),
   state: z.string().trim().min(1, 'State/Province is required.').regex(
     STATE_PATTERN,
     'State/Province can only contain letters, spaces, hyphens, periods, and apostrophes.'
   ),
-  zipCode: z.string().trim().min(1, 'ZIP code is required.'),
+  zipCode: zipCodeField,
   country: z.string().trim().min(1, 'Country is required.'),
   isDefault: z.boolean().optional(),
 })
 
 export const cartItemSchema = z.object({
   productId: z.string().min(1),
-  quantity: z.number().int().min(1),
+  quantity: z.number().int().min(1).default(1),
 })
 
 export const createOrderSchema = z.object({
@@ -61,12 +74,12 @@ export const createOrderSchema = z.object({
   email: emailField,
   phone: phoneField,
   addressLine1: z.string().trim().min(1, 'Address is required.'),
-  city: nameField('City'),
+  city: cityField('City'),
   state: z.string().trim().min(1, 'State/Province is required.').regex(
     STATE_PATTERN,
     'State/Province can only contain letters, spaces, hyphens, periods, and apostrophes.'
   ),
-  zipCode: z.string().trim().min(1, 'ZIP code is required.'),
+  zipCode: zipCodeField,
 })
 
 export const contactSchema = z.object({

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../utils/apiClient'
 import { useAuth } from './AuthContext'
 import { useLocale } from './LocaleContext'
@@ -22,6 +22,8 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [isDrawerOpen, setDrawerOpen] = useState(false)
+  const [updatingProductIds, setUpdatingProductIds] = useState([])
+  const updatingProductIdsRef = useRef(new Set())
 
   const refresh = useCallback(async () => {
     try {
@@ -41,8 +43,8 @@ export function CartProvider({ children }) {
     refresh()
   }, [authLoading, isAuthenticated, refresh])
 
-  const addItem = async (product, quantity = 1) => {
-    setDrawerOpen(true)
+  const addItem = async (product, quantity = 1, { openDrawer: shouldOpenDrawer = true } = {}) => {
+    if (shouldOpenDrawer) setDrawerOpen(true)
     try {
       const data = await api.post('/cart/items', { productId: product.id || product._id, quantity })
       setItems(normalizeItems(data.items))
@@ -53,12 +55,18 @@ export function CartProvider({ children }) {
   }
 
   const updateQuantity = async (productId, quantity) => {
+    if (updatingProductIdsRef.current.has(productId)) return
+    updatingProductIdsRef.current.add(productId)
+    setUpdatingProductIds([...updatingProductIdsRef.current])
     try {
       const data = await api.patch(`/cart/items/${productId}`, { quantity: Math.max(1, quantity) })
       setItems(normalizeItems(data.items))
     } catch (err) {
       console.error('Failed to update cart item', err)
       showToast(t('cart_action_error'), 'error')
+    } finally {
+      updatingProductIdsRef.current.delete(productId)
+      setUpdatingProductIds([...updatingProductIdsRef.current])
     }
   }
 
@@ -89,6 +97,7 @@ export function CartProvider({ children }) {
     () => ({
       items,
       loading,
+      updatingProductIds,
       addItem,
       removeItem,
       updateQuantity,
@@ -101,7 +110,7 @@ export function CartProvider({ children }) {
       closeDrawer: () => setDrawerOpen(false),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [items, loading, isDrawerOpen]
+    [items, loading, isDrawerOpen, updatingProductIds]
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

@@ -41,7 +41,7 @@ export const getCart = asyncHandler(async (req, res) => {
 })
 
 export const addItem = asyncHandler(async (req, res) => {
-  const { productId, quantity = 1 } = req.body
+  const { productId, quantity } = req.validated
   if (!productId) throw ApiError.badRequest('productId is required.')
 
   const product = await Product.findById(productId)
@@ -49,10 +49,14 @@ export const addItem = asyncHandler(async (req, res) => {
 
   const cart = await getOrCreateCart(req)
   const existing = findItem(cart, productId)
+  const requestedQuantity = (existing?.quantity || 0) + quantity
+  if (requestedQuantity > product.inventory.stockQuantity) {
+    throw ApiError.badRequest(`Only ${product.inventory.stockQuantity} units are in stock.`)
+  }
   if (existing) {
-    existing.quantity += Number(quantity) || 1
+    existing.quantity = requestedQuantity
   } else {
-    cart.items.push({ productId, quantity: Number(quantity) || 1 })
+    cart.items.push({ productId, quantity })
   }
   await cart.save()
   res.status(201).json(await populateCart(cart))
@@ -69,6 +73,12 @@ export const updateItem = asyncHandler(async (req, res) => {
   const cart = await getOrCreateCart(req)
   const item = findItem(cart, productId)
   if (!item) throw ApiError.notFound('Item not in cart.')
+
+  const product = await Product.findById(productId)
+  if (!product) throw ApiError.notFound('Product not found.')
+  if (qty > product.inventory.stockQuantity) {
+    throw ApiError.badRequest(`Only ${product.inventory.stockQuantity} units are in stock.`)
+  }
 
   item.quantity = qty
   await cart.save()

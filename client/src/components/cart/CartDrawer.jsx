@@ -6,7 +6,7 @@ import ProductImage from '../common/ProductImage'
 import useEscapeKey from '../../hooks/useEscapeKey'
 
 export default function CartDrawer() {
-  const { items, isDrawerOpen, closeDrawer, updateQuantity, removeItem, subtotal } = useCart()
+  const { items, isDrawerOpen, closeDrawer, updateQuantity, updatingProductIds, removeItem, subtotal } = useCart()
   const { locale, t } = useLocale()
 
   useEscapeKey(isDrawerOpen, closeDrawer)
@@ -31,6 +31,7 @@ export default function CartDrawer() {
             <ul className="flex flex-col gap-4">
               {items.map(({ product, quantity }) => {
                 const name = locale === 'es' ? product.nameEs : product.nameEn
+                const isUpdating = updatingProductIds.includes(product.id)
                 return (
                   <li key={product.id} className="flex gap-3">
                     <ProductImage product={product} className="h-16 w-16 shrink-0 rounded-xl" iconClassName="h-1/2 w-1/2" />
@@ -40,8 +41,9 @@ export default function CartDrawer() {
                       <div className="mt-1 flex items-center gap-2">
                         <button
                           type="button"
+                          disabled={isUpdating}
                           onClick={() => updateQuantity(product.id, quantity - 1)}
-                          className="rounded-full border border-cacao-200 p-1 hover:bg-cacao-100"
+                          className="rounded-full border border-cacao-200 p-1 hover:bg-cacao-100 disabled:cursor-wait disabled:opacity-50"
                           aria-label="Decrease quantity"
                         >
                           <Minus size={12} />
@@ -49,8 +51,9 @@ export default function CartDrawer() {
                         <span className="w-5 text-center text-sm">{quantity}</span>
                         <button
                           type="button"
+                          disabled={isUpdating}
                           onClick={() => updateQuantity(product.id, quantity + 1)}
-                          className="rounded-full border border-cacao-200 p-1 hover:bg-cacao-100"
+                          className="rounded-full border border-cacao-200 p-1 hover:bg-cacao-100 disabled:cursor-wait disabled:opacity-50"
                           aria-label="Increase quantity"
                         >
                           <Plus size={12} />

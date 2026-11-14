@@ -1,5 +1,7 @@
 const NAME_PATTERN = /^[\p{L}\s'-]+$/u
+const CITY_PATTERN = /^[\p{L}\s.'-]+$/u
 const STATE_PATTERN = /^[\p{L}\s.'-]+$/u
+const ZIP_PATTERN = /^\d{5}(?:-\d{4})?$/
 const PHONE_CHARS_PATTERN = /^\+?[0-9\s().-]+$/
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -15,9 +17,16 @@ export function validateName(value, fieldLabel = 'This field') {
 export function validateCity(value) {
   const trimmed = (value ?? '').trim()
   if (!trimmed) return 'City is required.'
-  if (!NAME_PATTERN.test(trimmed)) {
-    return 'City can only contain letters, spaces, hyphens, and apostrophes.'
+  if (!CITY_PATTERN.test(trimmed)) {
+    return 'City can only contain letters, spaces, hyphens, periods, and apostrophes.'
   }
+  return null
+}
+
+export function validateZip(value) {
+  const trimmed = (value ?? '').trim()
+  if (!trimmed) return 'ZIP code is required.'
+  if (!ZIP_PATTERN.test(trimmed)) return 'Enter a valid ZIP code (12345 or 12345-6789).'
   return null
 }
 

@@ -7,6 +7,7 @@ import { api, ApiError } from '../utils/apiClient'
 import {
   validateName,
   validateCity,
+  validateZip,
   validateState,
   validatePhone,
   validateEmail,
@@ -25,7 +26,7 @@ const FIELDS = [
   { name: 'address', label: 'Address', validate: (v) => validateRequired(v, 'Address') },
   { name: 'city', label: 'City', validate: validateCity },
   { name: 'state', label: 'State', validate: validateState },
-  { name: 'zip', label: 'ZIP', validate: (v) => validateRequired(v, 'ZIP code') },
+  { name: 'zip', label: 'ZIP', validate: validateZip },
   {
     name: 'cardNumber',
     label: 'Card Number',

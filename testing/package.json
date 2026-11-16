@@ -1,0 +1,11 @@
+{
+  "name": "solcacao-testing",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SolCacao test artifacts: UI e2e (Playwright) + performance (autocannon) scripts and reports",
+  "devDependencies": {
+    "autocannon": "^9.0.0",
+    "playwright": "^1.65.1"
+  }
+}

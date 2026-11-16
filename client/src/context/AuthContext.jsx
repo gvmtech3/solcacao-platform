@@ -7,6 +7,15 @@ function normalizeUser(user) {
   return user ? { ...user, id: user._id } : null
 }
 
+// Prefer the specific field-level validation message (e.g. "First name can
+// only contain letters...") over the generic "Validation failed." wrapper,
+// matching how Checkout/Contact/B2BWizard already surface field errors.
+function describeAuthError(err, fallback) {
+  if (!(err instanceof ApiError)) return fallback
+  const firstDetail = err.details && Object.values(err.details)[0]
+  return firstDetail || err.message
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -46,7 +55,7 @@ export function AuthProvider({ children }) {
           setModalOpen(false)
           return true
         } catch (err) {
-          setAuthError(err instanceof ApiError ? err.message : 'Unable to log in.')
+          setAuthError(describeAuthError(err, 'Unable to log in.'))
           return false
         }
       },
@@ -62,7 +71,7 @@ export function AuthProvider({ children }) {
           })
           return true
         } catch (err) {
-          setAuthError(err instanceof ApiError ? err.message : 'Unable to create an account.')
+          setAuthError(describeAuthError(err, 'Unable to create an account.'))
           return false
         }
       },

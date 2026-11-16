@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    name: Backend tests (Vitest + Supertest)
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "echo 'db.runCommand(\"ping\").ok' | mongosh --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Run backend test suite
+        working-directory: server
+        env:
+          NODE_ENV: test
+          MONGO_URI_TEST: mongodb://127.0.0.1:27017/solcacao_ci
+          JWT_SECRET: ci-test-secret-not-for-production
+          JWT_EXPIRES_IN: 7d
+          CLIENT_ORIGIN: http://localhost:5173
+          COOKIE_NAME: solcacao_token
+          COOKIE_SECURE: 'false'
+        run: npm test
+
+  client-build:
+    name: Client lint + build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Lint
+        working-directory: client
+        run: npm run lint
+
+      - name: Build
+        working-directory: client
+        run: npm run build

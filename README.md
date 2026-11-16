@@ -10,7 +10,9 @@ chocolate brand, built around two separate commercial channels:
 
 This README covers the whole repo end-to-end: setup, the database, how the
 app actually behaves, and where everything lives. For the full REST API
-reference, see **[`server/README.md`](server/README.md)**.
+reference, see **[`server/README.md`](server/README.md)**. For a
+plain-language walkthrough of using the site itself (no technical
+background needed), see **[`USER_GUIDE.md`](USER_GUIDE.md)**.
 
 ---
 
@@ -303,6 +305,15 @@ guest-cart-merge-on-login, checkout (guest, retail, and the B2B 403
 block), B2B quote + file upload, contact validation, samplers, and account
 updates. See `server/README.md` for how the test setup works.
 
+There's also a standalone, more comprehensive testing pass documented in
+**[`testing/`](testing/)**: real browser (Playwright) UI tests covering
+positive/negative/edge cases, and performance/load tests against the core
+API endpoints, all written up with screenshots and logs in
+`testing/SolCacao-Test-Report.docx`.
+
+The Phase 4 final team presentation deck lives in
+**[`presentation/SolCacao-Final-Presentation.pptx`](presentation/SolCacao-Final-Presentation.pptx)**.
+
 ## Deployment
 
 The stack is a standard Node/Express + MongoDB + static React build — it
@@ -332,7 +343,9 @@ Key points if you go this route:
 - Uploaded B2B brand-asset files are stored on local disk
   (`server/uploads/`), not object storage — fine for a single-instance
   deploy, but not durable across an instance replacement.
-- No CI pipeline configured yet (tests are run manually via `npm test`).
+- CI (`.github/workflows/ci.yml`) runs the backend test suite against a
+  MongoDB service container and lints/builds the client on every push and
+  PR to `main` — it does not yet deploy anywhere automatically.
 - Email notifications (order confirmations, contact-form routing to a
   support inbox) are intentionally **not** implemented — out of scope for
   this project.
